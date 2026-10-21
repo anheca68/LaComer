@@ -225,3 +225,7 @@ __marimo__/
 ._.DS_Store
 .Spotlight-V100
 .Trashes
+
+# Archivos de trabajo como *PDF 
+*.pdf
+procesados/

@@ -231,3 +231,22 @@ __marimo__/
 procesados/
 mejoras_01.md
 mejoras_02.md
+
+
+# Bases de datos y archivos temporales de SQLite
+*.db
+*.db.bak
+*.sqlite
+*.sqlite3
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Carpetas de trabajo con datos de tickets
+backend/backups/
+backend/resultados/
+backend/uploads/
+backend/staging/
+backend/descartados/
+backend/procesados/
+procesados/

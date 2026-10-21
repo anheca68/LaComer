@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+
+{% block titulo %}Consulta por Ticket{% endblock %}
+
+{% block extra_styles %}
+<link rel="stylesheet" href="/static/css/consultas.css">
+{% endblock %}
+
+{% block contenido %}
+<div class="pagina-consulta">
+    <h1>Consulta por Ticket</h1>
+    <p class="descripcion">
+        Busca un ticket por su número de ticket (ID) o por su folio para ver
+        los detalles cargados, sus renglones y totales.
+    </p>
+
+    <form method="get" action="/ticket" class="formulario-busqueda">
+        <input type="text" name="q" value="{{ busqueda }}"
+               placeholder="Ej: 1, 42, FOLIO123..." class="input-busqueda">
+        <button type="submit" class="btn-primario">Buscar</button>
+    </form>
+
+    {% if error %}
+    <div class="alert-error">{{ error }}</div>
+    {% endif %}
+
+    {% if ticket %}
+    <div class="detalle-ticket">
+        <div class="cabecera-detalle">
+            <h2>Ticket #{{ ticket.id }}</h2>
+            <div class="meta">
+                <span class="badge">{{ ticket.fecha }}</span>
+                {% if ticket.hora %}
+                <span class="badge">{{ ticket.hora }}</span>
+                {% endif %}
+                {% if ticket.folio %}
+                <span class="badge">Folio: {{ ticket.folio }}</span>
+                {% endif %}
+                {% if ticket.establecimiento %}
+                <span class="badge">{{ ticket.establecimiento }}</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="info-ticket">
+            <div class="grid-info">
+                {% if ticket.cliente %}
+                <div class="item-info">
+                    <span class="etiqueta">Cliente</span>
+                    <span class="valor">{{ ticket.cliente }}</span>
+                </div>
+                {% endif %}
+                {% if ticket.forma_pago %}
+                <div class="item-info">
+                    <span class="etiqueta">Forma de Pago</span>
+                    <span class="valor">{{ ticket.forma_pago }}</span>
+                </div>
+                {% endif %}
+                {% if ticket.articulos_declarados %}
+                <div class="item-info">
+                    <span class="etiqueta">Artículos Declarados</span>
+                    <span class="valor">{{ ticket.articulos_declarados }}</span>
+                </div>
+                {% endif %}
+                {% if ticket.iva %}
+                <div class="item-info">
+                    <span class="etiqueta">IVA</span>
+                    <span class="valor">${{ "%.2f"|format(ticket.iva) }}</span>
+                </div>
+                {% endif %}
+                {% if ticket.ieps %}
+                <div class="item-info">
+                    <span class="etiqueta">IEPS</span>
+                    <span class="valor">${{ "%.2f"|format(ticket.ieps) }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if ticket.renglones %}
+        <div class="tabla-contenedor">
+            <h3>Renglones del ticket</h3>
+            <table class="tabla-datos">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Descripción</th>
+                        <th>Cant.</th>
+                        <th>Precio Unit.</th>
+                        <th>Precio Promo</th>
+                        <th>Total</th>
+                        <th>Tipo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in ticket.renglones %}
+                    <tr class="{{ 'descuento' if r.tipo == 'descuento' else '' }}">
+                        <td>{{ r.linea }}</td>
+                        <td>
+                            {{ r.descripcion }}
+                            {% if r.categoria %}
+                            <br><small class="categoria">{{ r.categoria }}{% if r.subcategoria %} / {{ r.subcategoria }}{% endif %}</small>
+                            {% endif %}
+                        </td>
+                        <td>{{ r.cantidad }}</td>
+                        <td>${{ "%.2f"|format(r.precio_unit) }}</td>
+                        <td>{% if r.precio_promo %}${{ "%.2f"|format(r.precio_promo) }}{% else %}-{% endif %}</td>
+                        <td>${{ "%.2f"|format(r.total) }}</td>
+                        <td>{{ r.tipo }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+
+        <div class="totales-ticket">
+            <div class="grid-totales">
+                <div class="tarjeta-total">
+                    <span class="etiqueta">Productos</span>
+                    <span class="valor">${{ "%.2f"|format(ticket.totales_calculados.productos) }}</span>
+                </div>
+                <div class="tarjeta-total">
+                    <span class="etiqueta">Descuentos</span>
+                    <span class="valor {% if ticket.totales_calculados.descuentos < 0 %}ahorro{% endif %}">
+                        ${{ "%.2f"|format(ticket.totales_calculados.descuentos) }}
+                    </span>
+                </div>
+                <div class="tarjeta-total destacada">
+                    <span class="etiqueta">Total Pagado</span>
+                    <span class="valor">${{ "%.2f"|format(ticket.totales_calculados.total) }}</span>
+                </div>
+            </div>
+
+            {% if ticket.total != ticket.totales_calculados.total %}
+            <div class="alert-info">
+                Nota: El total registrado (${{ "%.2f"|format(ticket.total) }}) difiere de la suma de renglones
+                (${{ "%.2f"|format(ticket.totales_calculados.total) }}) en ${{ "%.2f"|format(ticket.total - ticket.totales_calculados.total) }}.
+            </div>
+            {% endif %}
+        </div>
+
+        <a href="/ticket" class="btn-secundario">Nueva búsqueda</a>
+    </div>
+
+    {% elif busqueda and not error %}
+    <div class="alert-info">
+        Ingresa un número de ticket o folio para buscar.
+    </div>
+    {% endif %}
+
+    {% if not ticket and tickets_recientes %}
+    <div class="tickets-recientes">
+        <h3>Tickets recientes</h3>
+        <div class="lista-tickets-mini">
+            {% for t in tickets_recientes[:10] %}
+            <a href="/ticket?q={{ t.id }}" class="item-ticket-mini">
+                <span class="id">#{{ t.id }}</span>
+                <span class="fecha">{{ t.fecha }}</span>
+                <span class="folio">{{ t.folio or 'Sin folio' }}</span>
+                <span class="total">${{ "%.2f"|format(t.total) }}</span>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

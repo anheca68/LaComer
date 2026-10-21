@@ -1,0 +1,360 @@
+{% extends "base.html" %}
+{% block titulo %}Panel de gastos{% endblock %}
+
+{% block extra_styles %}
+<link rel="stylesheet" href="/static/css/panel.css">
+{% endblock %}
+
+{% block contenido %}
+
+<div class="acciones">
+    {% if periodos and periodos.hay_datos %}
+    <div class="filtro-periodo">
+        <label for="sel-periodo">Periodo</label>
+        <select id="sel-periodo"
+                onchange="location.href = this.value ? '/?periodo=' + this.value : '/'">
+            <option value="" {% if periodo_activo == 'todo' %}selected{% endif %}>
+                Todo el historial
+            </option>
+            {# El grupo de años se muestra siempre que haya al menos uno. Con
+               un solo año en la base parece redundante, pero si la URL trae
+               ?periodo=2026 el selector tiene que mostrarla: si no, la barra
+               diría "Todo el historial" mientras la vista está filtrada. #}
+            {% if periodos.anios | length >= 1 %}
+            <optgroup label="Por año">
+                {% for a in periodos.anios %}
+                <option value="{{ a.valor }}" {% if periodo_activo == a.valor %}selected{% endif %}>
+                    {{ a.etiqueta }}
+                </option>
+                {% endfor %}
+            </optgroup>
+            {% endif %}
+            <optgroup label="Por mes">
+                {% for m in periodos.meses %}
+                <option value="{{ m.valor }}" {% if periodo_activo == m.valor %}selected{% endif %}>
+                    {{ m.etiqueta }}
+                </option>
+                {% endfor %}
+            </optgroup>
+        </select>
+    </div>
+    {% endif %}
+
+    <a class="boton boton-primario"
+       href="/exportar/excel{% if periodo_activo != 'todo' %}?periodo={{ periodo_activo }}{% endif %}">
+        Exportar a Excel
+    </a>
+    <a class="boton" href="/reportes">Reportes PDF</a>
+</div>
+
+{% if ind.periodo and periodo_activo != 'todo' %}
+<div class="aviso-filtro">
+    <span>
+        Mostrando <strong>{{ ind.periodo.etiqueta }}</strong> &middot;
+        {{ ind.renglones }} renglones en {{ ind.tickets }} tickets
+    </span>
+    <a href="/">Ver todo el historial</a>
+</div>
+{% endif %}
+
+{% if ind and ind.hay_datos %}
+
+{# El desglose baja a días cuando el período es un mes suelto: una tabla con
+   una sola fila no informa nada. #}
+{% set por_dia = ind.periodo.granularidad == 'dia' %}
+{% set desglose = dias if por_dia else meses %}
+{% set clave = 'dia' if por_dia else 'mes' %}
+{% set ultimo = desglose[-1] %}
+{% set previo = desglose[-2] if desglose | length > 1 else none %}
+
+<!-- Cifras de cabecera. Las comparaciones de mes a mes solo se pintan cuando
+     el mes está completo: un mes a medias siempre parecería una caída. -->
+<div class="kpis">
+    <div class="kpi">
+        <div class="etiqueta">Gasto neto</div>
+        <div class="valor">$ {{ "{:,.2f}".format(ind.gasto_neto) }}</div>
+        <div class="nota">{{ ind.renglones }} renglones &middot; {{ ind.productos }} productos</div>
+    </div>
+
+    {# Con un mes el filtro ya da el total, así que la segunda tarjeta invierte
+       el espacio en el día más caro; con un año o el historial, el último mes
+       y su variación contra el anterior. #}
+    {% if por_dia and dias %}
+    {% set dia_top = dias | max(attribute='neto') %}
+    <div class="kpi alerta">
+        <div class="etiqueta">Día más caro</div>
+        <div class="valor">$ {{ "{:,.2f}".format(dia_top.neto) }}</div>
+        <div class="nota">
+            {{ dia_top.dia }} &middot; {{ dia_top.tickets }} tickets
+        </div>
+    </div>
+    {% elif not por_dia and ind.ultimo_periodo %}
+    <div class="kpi">
+        <div class="etiqueta">{{ ind.ultimo_periodo }}</div>
+        <div class="valor">$ {{ "{:,.2f}".format(ultimo.neto) }}</div>
+        <div class="nota">
+            {{ ultimo.tickets }} tickets
+            {% if ind.variacion_mes is not none and previo %}
+            &middot; <span class="{{ 'pos' if ind.variacion_mes > 0 else 'neg' }}">
+                {{ "%+.1f"|format(ind.variacion_mes) }}%</span>
+                vs {{ previo[clave] }}
+            {% elif ind.periodo.mes_incompleto %}
+            &middot; mes en curso
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="kpi">
+        <div class="etiqueta">Ticket promedio</div>
+        <div class="valor">$ {{ "{:,.2f}".format(ind.ticket_promedio) }}</div>
+        <div class="nota">{{ ind.tickets }} tickets en total</div>
+    </div>
+
+    <div class="kpi {{ 'alerta' if ind.ahorro > 0 else '' }}">
+        <div class="etiqueta">Descuentos</div>
+        <div class="valor">{{ "$ {:,.2f}".format(ind.ahorro) if ind.ahorro else "—" }}</div>
+        <div class="nota">{% if ind.ahorro %}cash back y promos{% else %}sin registros aún{% endif %}</div>
+    </div>
+
+    <div class="kpi bien">
+        <div class="etiqueta">Ticket más caro</div>
+        <div class="valor" style="font-size:14px; line-height:1.4;">
+            {{ ind.ticket_max if ind.ticket_max else "—" }}
+        </div>
+    </div>
+
+    {% if ind.tendencia_3m is not none %}
+    <div class="kpi {{ 'alerta' if ind.tendencia_3m > 5 else 'bien' if ind.tendencia_3m < -5 else '' }}">
+        <div class="etiqueta">Tendencia 3 meses</div>
+        <div class="valor">{{ "%+.1f"|format(ind.tendencia_3m) }}%</div>
+        <div class="nota">vs trimestre anterior</div>
+    </div>
+    {% endif %}
+
+    {% if ind.dia_semana_top %}
+    <div class="kpi">
+        <div class="etiqueta">Día de mayor gasto</div>
+        <div class="valor">{{ ind.dia_semana_top }}</div>
+        <div class="nota">promedio del período</div>
+    </div>
+    {% endif %}
+
+    {% if ind.sin_hora %}
+    <div class="kpi alerta">
+        <div class="etiqueta">Sin hora</div>
+        <div class="valor">{{ ind.sin_hora }}</div>
+        <div class="nota">tickets sin hora registrada</div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Los dos cortes que primero se miran: la tendencia mensual y en qué se
+     fue el dinero. -->
+<div class="rejilla">
+    <div class="card tarjeta">
+        <h3>{{ 'Gasto por día' if por_dia else 'Gasto por mes' }}</h3>
+        <p class="sub">
+            {% if por_dia %}
+            Cada barra es un día de {{ ind.periodo.etiqueta|lower }}.
+            {% else %}
+            Bruto, descuentos y neto. Un mes abierto se ve más corto.
+            {% endif %}
+        </p>
+        <div class="grafica"><canvas id="g-mes"></canvas></div>
+    </div>
+
+    <div class="card tarjeta">
+        <h3>En qué se va el dinero</h3>
+        <p class="sub">{{ categorias|length }} categorías, por importe neto</p>
+        <div class="grafica"><canvas id="g-categoria"></canvas></div>
+    </div>
+</div>
+
+<div class="rejilla">
+    <div class="card tarjeta">
+        <h3>Subcategorías más fuertes</h3>
+        <p class="sub">Las {{ subcategorias|length }} de mayor importe</p>
+        <div class="grafica alta"><canvas id="g-subcategoria"></canvas></div>
+    </div>
+
+    <div class="card tarjeta">
+        <h3>Gasto por día de la semana</h3>
+        <p class="sub">Suma por día de la semana, no por día del mes</p>
+        <div class="grafica"><canvas id="g-dia"></canvas></div>
+    </div>
+</div>
+
+<!-- Tablas: el detalle fino detrás de cada gráfica. La barra de la celda
+     compara contra el máximo de la lista, que se calcula en la plantilla. -->
+<div class="card">
+    <h3>Desglose por {{ 'día' if por_dia else 'mes' }}</h3>
+    <p class="sub">
+        Los descuentos se restan del neto. El promedio es por ticket.
+    </p>
+    {% set max_neto = desglose | map(attribute='neto') | max %}
+    <table class="datos">
+        <thead>
+            <tr>
+                <th>{{ "Día" if por_dia else "Mes" }}</th>
+                <th class="num">Tickets</th>
+                <th class="num">Renglones</th>
+                <th class="num">Bruto</th>
+                <th class="num">Descuentos</th>
+                <th class="num">Neto</th>
+                <th class="num">Promedio</th>
+                <th style="width:130px">Proporción</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for m in desglose %}
+            <tr>
+                <td>{{ m[clave] }}</td>
+                <td class="num">{{ m.tickets }}</td>
+                <td class="num">{{ m.renglones }}</td>
+                <td class="num">{{ "{:,.2f}".format(m.bruto) }}</td>
+                <td class="num">{{ "{:,.2f}".format(m.descuentos) if m.descuentos else "—" }}</td>
+                <td class="num"><strong>{{ "{:,.2f}".format(m.neto) }}</strong></td>
+                <td class="num">{{ "{:,.2f}".format(m.promedio) }}</td>
+                <td>
+                    <div class="barra">
+                        <span style="width: {{ (m.neto * 100 / max_neto)|round(1) }}%"></span>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+            <tr style="font-weight:bold; background:#eef1f5;">
+                <td>Total</td>
+                <td class="num">{{ ind.tickets }}</td>
+                <td class="num">{{ ind.renglones }}</td>
+                <td class="num">{{ "{:,.2f}".format(ind.gasto_bruto) }}</td>
+                <td class="num">{{ "{:,.2f}".format(ind.ahorro) }}</td>
+                <td class="num">{{ "{:,.2f}".format(ind.gasto_neto) }}</td>
+                <td class="num">{{ "{:,.2f}".format(ind.ticket_promedio) }}</td>
+                <td></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="rejilla">
+
+    {% set max_cat = categorias | map(attribute='importe') | max %}
+    <div class="card">
+        <h3>Gasto por categoría</h3>
+        <p class="sub">Clic en la fila para ver sus subcategorías</p>
+        <table class="datos">
+            <thead>
+                <tr>
+                    <th>Categoría</th>
+                    <th class="num">Importe</th>
+                    <th class="num">%</th>
+                    <th class="num">Líneas</th>
+                    <th style="width:110px"></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in categorias %}
+                <tr>
+                    <td>{{ c.categoria }}</td>
+                    <td class="num">{{ "{:,.2f}".format(c.importe) }}</td>
+                    <td class="num">{{ c.porcentaje }}%</td>
+                    <td class="num">{{ c.renglones }}</td>
+                    <td>
+                        <div class="barra">
+                            <span class="{{ 'neg' if c.importe < 0 }}"
+                                  style="width: {{ (c.importe * 100 / max_cat)|round(1) }}%"></span>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% set max_prod = productos | map(attribute='importe') | max %}
+    <div class="card">
+        <h3>Productos más caros</h3>
+        <p class="sub">Agrupados por descripción, no por renglón</p>
+        <table class="datos">
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th class="num">Importe</th>
+                    <th class="num">Uds.</th>
+                    <th class="num">Compras</th>
+                    <th style="width:110px"></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in productos %}
+                <tr>
+                    <td>
+                        {{ p.descripcion[:44] }}
+                        <div class="muted" style="font-size:11px;">{{ p.categoria }}</div>
+                    </td>
+                    <td class="num"><strong>{{ "{:,.2f}".format(p.importe) }}</strong></td>
+                    <td class="num">{{ p.unidades }}</td>
+                    <td class="num">{{ p.compras }}</td>
+                    <td>
+                        <div class="barra">
+                            <span style="width: {{ (p.importe * 100 / max_prod)|round(1) }}%"></span>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card">
+    <h3>Tickets más caros</h3>
+    <p class="sub">Los {{ tickets_top|length }} de mayor importe</p>
+    <table class="datos">
+        <thead>
+            <tr>
+                <th>Fecha</th>
+                <th>Hora</th>
+                <th>Establecimiento</th>
+                <th>Folio</th>
+                <th class="num">Total</th>
+                <th class="num">Tickets</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for t in tickets_top %}
+            <tr>
+                <td>{{ t.fecha }}</td>
+                <td>{{ t.hora or "—" }}</td>
+                <td>{{ t.establecimiento }}</td>
+                <td>{{ t.folio or "—" }}</td>
+                <td class="num"><strong>{{ "{:,.2f}".format(t.total) }}</strong></td>
+                <td class="num">{{ t.productos }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% else %}
+
+<div class="card">
+    <h3>Sin datos suficientes</h3>
+    <p class="muted">
+        Todavía no hay tickets confirmados. Carga la fuente desde
+        <a href="/importar">Carga inicial</a> para que el panel tenga qué mostrar.
+    </p>
+</div>
+
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+{# `defer` en los scripts: se descargan en paralelo sin bloquear el
+   renderizado y, sobre todo, el orden con el que se ejecutan es el del orden
+   en que aparecen. #}
+<script defer src="/static/js/chart.umd.min.js"></script>
+<script defer src="/static/js/panel.js"></script>
+{% endblock %}

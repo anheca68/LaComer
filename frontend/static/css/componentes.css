@@ -1,0 +1,280 @@
+/* ============================================================
+   componentes.css — Botones, tarjetas, tablas, badges, alertas
+   ============================================================ */
+
+/* Tarjetas */
+.card {
+    background: var(--color-blanco);
+    padding: 20px;
+    border-radius: var(--radio);
+    box-shadow: var(--sombra);
+    margin-bottom: 20px;
+}
+
+/* Botones */
+button {
+    background: var(--color-acento);
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 15px;
+    font-size: 14px;
+    transition: background var(--transicion);
+}
+
+button:hover {
+    background: #219150;
+}
+
+button.secundario {
+    background: #455a64;
+}
+
+button.secundario:hover {
+    background: #37474f;
+}
+
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-process {
+    background: #2980b9;
+    padding: 6px 12px;
+    margin: 0;
+}
+
+.btn-process:hover {
+    background: #1f618d;
+}
+
+.btn-guardar {
+    background: #2e7d32;
+    padding: 6px 12px;
+    margin: 0;
+}
+
+.btn-guardar:hover {
+    background: #1b5e20;
+}
+
+.btn-exportar {
+    background: #6d4c41;
+    padding: 6px 12px;
+    margin: 0;
+}
+
+.btn-exportar:hover {
+    background: #4e342e;
+}
+
+.boton-secundario {
+    display: inline-block;
+    background: #eceff1;
+    color: #37474f;
+    border: 1px solid #b0bec5;
+    padding: 6px 12px;
+    margin: 0;
+    font-size: 14px;
+    text-decoration: none;
+    border-radius: 4px;
+}
+
+.boton-secundario:hover {
+    background: #e0e4e7;
+}
+
+.btn-descartar {
+    background: var(--color-peligro);
+    padding: 10px 15px;
+}
+
+.btn-descartar:hover {
+    background: #962d22;
+}
+
+.btn-alternar-chk {
+    background: #455a64;
+    padding: 6px 12px;
+    margin: 0;
+    font-size: 13px;
+}
+
+.btn-alternar-chk:hover {
+    background: #37474f;
+}
+
+.btn-ver {
+    background: none;
+    border: 1px solid #ccd2d9;
+    border-radius: 5px;
+    padding: 2px 8px;
+    font-size: 11px;
+    color: #4a5560;
+    cursor: pointer;
+    margin: 0;
+}
+
+.btn-ver:hover {
+    background: #f1f3f5;
+}
+
+.btn-quitar {
+    background: none;
+    border: 1px solid #e3b7b0;
+    color: #a5382c;
+    border-radius: 5px;
+    cursor: pointer;
+    width: 20px;
+    height: 20px;
+    line-height: 1;
+    padding: 0;
+    margin: 0;
+}
+
+.btn-quitar:hover {
+    background: #fdeceb;
+}
+
+.btn-limpiar {
+    background: none;
+    border: 1px dashed #b9c2cb;
+    border-radius: 5px;
+    padding: 5px 10px;
+    font-size: 12px;
+    color: #55616d;
+    cursor: pointer;
+    margin: 0;
+}
+
+.btn-limpiar:hover {
+    background: #eef1f4;
+}
+
+/* Botones de acción compartidos */
+.boton {
+    display: inline-block;
+    padding: 9px 15px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: bold;
+    border: 1px solid var(--color-secundario);
+    text-align: center;
+}
+
+.boton-primario {
+    background: var(--color-secundario);
+    color: white;
+}
+
+.boton-primario:hover {
+    background: #345d8a;
+}
+
+.boton-apagado {
+    background: #eef1f5;
+    color: #9aa8b7;
+    border-color: #d5dce4;
+    cursor: not-allowed;
+}
+
+/* Tablas */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+th, td {
+    border: 1px solid var(--color-borde);
+    padding: 10px;
+    text-align: left;
+}
+
+th {
+    background: #eceff1;
+}
+
+tfoot .totales th {
+    background: #cfd8dc;
+    color: #263238;
+    font-size: 14px;
+}
+
+tfoot .num {
+    text-align: right;
+    white-space: nowrap;
+}
+
+/* Badges */
+.badge-alerta {
+    display: inline-block;
+    background: #fdebd0;
+    color: #a04000;
+    border-radius: 3px;
+    padding: 1px 6px;
+    font-size: 11px;
+    margin-left: 6px;
+}
+
+.badge-ok {
+    display: inline-block;
+    background: #d4edda;
+    color: #155724;
+    border-radius: 3px;
+    padding: 1px 6px;
+    font-size: 11px;
+    margin-left: 6px;
+}
+
+/* Alertas */
+.alert-success {
+    background: #d4edda;
+    color: #155724;
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 15px;
+}
+
+.alert-error {
+    background: #f8d7da;
+    color: #721c24;
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 15px;
+}
+
+.alert-info {
+    background: #d1ecf1;
+    color: #0c5460;
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 15px;
+}
+
+/* Utilidades */
+.muted {
+    color: #90a4ae;
+    font-size: 13px;
+}
+
+.total-dinero {
+    font-size: 16px;
+    font-weight: bold;
+    color: #1b5e20;
+}
+
+.solo-lectura {
+    color: #607d8b;
+    text-align: right;
+    white-space: nowrap;
+}
+
+.col-producto {
+    text-align: center;
+    white-space: nowrap;
+}

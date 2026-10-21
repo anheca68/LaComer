@@ -1,0 +1,329 @@
+/* Estilos para las páginas de consulta (artículo y ticket) */
+
+.pagina-consulta {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.pagina-consulta h1 {
+    margin-bottom: 0.5rem;
+}
+
+.descripcion {
+    color: #666;
+    margin-bottom: 1.5rem;
+}
+
+.descripcion code {
+    background: #f0f0f0;
+    padding: 0.15rem 0.4rem;
+    border-radius: 3px;
+    font-size: 0.9em;
+}
+
+/* Formulario de búsqueda */
+.formulario-busqueda {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.input-busqueda {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 1rem;
+}
+
+.input-busqueda:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+/* Resultados de búsqueda */
+.resultados-busqueda {
+    margin-top: 1.5rem;
+}
+
+.lista-resultados {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.item-resultado {
+    display: block;
+    padding: 1rem;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.2s;
+}
+
+.item-resultado:hover {
+    border-color: #3498db;
+    background: #f8f9fa;
+}
+
+.item-resultado .nombre {
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-bottom: 0.25rem;
+}
+
+.item-resultado .meta {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+/* Badges */
+.badge {
+    display: inline-block;
+    padding: 0.25rem 0.6rem;
+    background: #e8e8e8;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    color: #555;
+}
+
+/* Detalle de artículo */
+.detalle-articulo {
+    margin-top: 1.5rem;
+}
+
+.cabecera-detalle {
+    margin-bottom: 1.5rem;
+}
+
+.cabecera-detalle h2 {
+    margin-bottom: 0.5rem;
+}
+
+.cabecera-detalle .meta {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.filtro-anio {
+    margin-bottom: 1.5rem;
+}
+
+.filtro-anio label {
+    margin-right: 0.5rem;
+    font-weight: 500;
+}
+
+.filtro-anio select {
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+/* Tabla de datos */
+.tabla-contenedor {
+    overflow-x: auto;
+    margin-bottom: 1.5rem;
+}
+
+.tabla-datos {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+}
+
+.tabla-datos th,
+.tabla-datos td {
+    padding: 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.tabla-datos th {
+    background: #f8f9fa;
+    font-weight: 600;
+    color: #555;
+}
+
+.tabla-datos tbody tr:hover {
+    background: #f8f9fa;
+}
+
+.tabla-datos tr.descuento {
+    background: #fff3cd;
+}
+
+.tabla-datos .ahorro {
+    color: #27ae60;
+    font-weight: 600;
+}
+
+.tabla-datos .categoria {
+    color: #888;
+}
+
+/* Totales */
+.totales-anuales,
+.totales-ticket {
+    margin-bottom: 1.5rem;
+}
+
+.totales-anuales h3,
+.totales-ticket h3 {
+    margin-bottom: 1rem;
+}
+
+.grid-totales {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+}
+
+.tarjeta-total {
+    background: #f8f9fa;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 1rem;
+    text-align: center;
+}
+
+.tarjeta-total.destacada {
+    background: #e8f4fd;
+    border-color: #3498db;
+}
+
+.tarjeta-total .etiqueta {
+    display: block;
+    font-size: 0.85rem;
+    color: #666;
+    margin-bottom: 0.25rem;
+}
+
+.tarjeta-total .valor {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #2c3e50;
+}
+
+.tarjeta-total .valor.ahorro {
+    color: #27ae60;
+}
+
+/* Info del ticket */
+.info-ticket {
+    margin-bottom: 1.5rem;
+}
+
+.grid-info {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.item-info {
+    background: #f8f9fa;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 0.75rem;
+}
+
+.item-info .etiqueta {
+    display: block;
+    font-size: 0.8rem;
+    color: #666;
+    margin-bottom: 0.25rem;
+}
+
+.item-info .valor {
+    font-weight: 600;
+}
+
+/* Tickets recientes */
+.tickets-recientes {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e0e0e0;
+}
+
+.tickets-recientes h3 {
+    margin-bottom: 1rem;
+}
+
+.lista-tickets-mini {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.item-ticket-mini {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.2s;
+}
+
+.item-ticket-mini:hover {
+    border-color: #3498db;
+    background: #f8f9fa;
+}
+
+.item-ticket-mini .id {
+    font-weight: 600;
+    color: #3498db;
+}
+
+.item-ticket-mini .fecha {
+    color: #666;
+}
+
+.item-ticket-mini .folio {
+    flex: 1;
+    color: #666;
+}
+
+.item-ticket-mini .total {
+    font-weight: 600;
+}
+
+/* Botones */
+.btn-primario {
+    padding: 0.75rem 1.5rem;
+    background: #3498db;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-primario:hover {
+    background: #2980b9;
+}
+
+.btn-secundario {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    background: #95a5a6;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-secundario:hover {
+    background: #7f8c8d;
+}

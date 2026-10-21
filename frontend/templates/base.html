@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block titulo %}Gestor de Tickets{% endblock %}</title>
+    <!-- CSS modular -->
+    <link rel="stylesheet" href="/static/css/base.css">
+    <link rel="stylesheet" href="/static/css/componentes.css">
+    <link rel="stylesheet" href="/static/css/formulario.css">
+    <link rel="stylesheet" href="/static/css/modal.css">
+    {% block extra_styles %}{% endblock %}
+</head>
+
+<body>
+
+    <div class="app">
+
+        {# La barra lateral se declara en el servidor: saber si la carga inicial
+           sigue disponible evita ofrecer una opción que ya no hace nada. #}
+        <aside class="lateral">
+            <div class="marca">Gestor de<br>Tickets</div>
+            <div class="version">v2.0</div>
+
+            <nav>
+                <div class="grupo">Resumen</div>
+                <a href="/" class="{% if seccion == 'panel' %}activo{% endif %}">
+                    <span class="icono">&#9632;</span> Panel
+                </a>
+                <a href="/reportes" class="{% if seccion == 'reportes' %}activo{% endif %}">
+                    <span class="icono">&#9707;</span> Reportes
+                </a>
+
+                <div class="grupo">Consultas</div>
+                <a href="/articulo" class="{% if seccion == 'articulo' %}activo{% endif %}">
+                    <span class="icono">&#9776;</span> Por artículo
+                </a>
+                <a href="/ticket" class="{% if seccion == 'ticket' %}activo{% endif %}">
+                    <span class="icono">&#9776;</span> Por ticket
+                </a>
+
+                <div class="grupo">Operación</div>
+                <a href="/tickets" class="{% if seccion == 'tickets' %}activo{% endif %}">
+                    <span class="icono">&#9776;</span> Tickets
+                </a>
+                <a href="/catalogo" class="{% if seccion == 'catalogo' %}activo{% endif %}">
+                    <span class="icono">&#9635;</span> Catálogo
+                </a>
+                <a href="/log" class="{% if seccion == 'log' %}activo{% endif %}">
+                    <span class="icono">&#9776;</span> Registro de cambios
+                </a>
+                <a href="/admin/login" class="{% if seccion == 'admin' %}activo{% endif %}">
+                    <span class="icono">&#9881;</span> Admin
+                </a>
+
+                {% if carga_inicial_abierta() %}
+                <div class="grupo">Mantenimiento</div>
+                <a href="/importar" class="{% if seccion == 'importar' %}activo{% endif %}">
+                    <span class="icono">&#8679;</span> Carga inicial
+                </a>
+                {% endif %}
+            </nav>
+
+            <div class="pie">
+                {{ db_path }}
+            </div>
+        </aside>
+
+        <main class="principal">
+
+            {% if mensaje %}
+            <div class="alert-success">{{ mensaje }}</div>
+            {% endif %}
+
+            {% if aviso %}
+            <div class="alert-info">{{ aviso }}</div>
+            {% endif %}
+
+            {% if error %}
+            <div class="alert-error">{{ error }}</div>
+            {% endif %}
+
+            {% block contenido %}{% endblock %}
+
+        </main>
+
+    </div>
+
+    <!-- Modal genérica de confirmación -->
+    <div id="modal-confirmacion" class="modal-overlay" hidden>
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-titulo">
+            <div class="modal-header">
+                <h3 id="modal-titulo">Confirmar</h3>
+            </div>
+            <div class="modal-body">
+                <p id="modal-mensaje"></p>
+                <input type="text" id="modal-input" class="modal-input">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-cancelar" id="modal-cancelar">Cancelar</button>
+                <button type="button" class="btn-confirmar" id="modal-confirmar">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JS modular: utilidades base -->
+    <script src="/static/js/utilidades.js"></script>
+    <script src="/static/js/modal.js"></script>
+    {% block scripts %}{% endblock %}
+
+</body>
+
+</html>

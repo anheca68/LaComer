@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block titulo %}Editar catálogo{% endblock %}
+
+{% block extra_styles %}
+<link rel="stylesheet" href="/static/css/catalogo.css">
+{% endblock %}
+
+{% block contenido %}
+
+<div class="card">
+    <h2>Editar Catálogo de Productos</h2>
+    <p class="muted">
+        Corrige aquí la clasificación de un producto y el cambio queda guardado en la base
+        de datos. A partir de ahora todos los tickets lo toman automáticamente.
+    </p>
+
+    <form method="get" action="/catalogo" class="busqueda-catalogo">
+        <div>
+            <label for="buscar">Buscar artículo o SKU</label>
+            <input type="text" id="buscar" name="buscar" value="{{ buscar }}"
+                   placeholder="Ej: kello, jama, 736">
+        </div>
+        <div>
+            <label for="categoria">Filtrar por categoría</label>
+            <select id="categoria" name="categoria">
+                <option value="">Todas las categorías</option>
+                {% for cat in arbol_categorias %}
+                <option value="{{ cat }}" {{ 'selected' if cat == categoria else '' }}>{{ cat }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <button type="submit">Buscar</button>
+        </div>
+    </form>
+</div>
+
+<div class="card">
+    <h2>Productos ({{ productos|length }})</h2>
+
+    {% if productos %}
+    <table class="tabla-catalogo">
+        <thead>
+            <tr>
+                <th>Artículo</th>
+                <th>SKU</th>
+                <th>Categoría</th>
+                <th>Subcategoría</th>
+                <th>Acción</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in productos %}
+            <tr data-categoria="{{ p.categoria or '' }}" data-subcategoria="{{ p.subcategoria or '' }}">
+                <td>
+                    <strong>{{ p.descripcion }}</strong>
+                    {% if not p.categoria %}
+                    <span class="badge-alerta">sin clasificar</span>
+                    {% endif %}
+                </td>
+                <td class="muted">{{ p.sku or '—' }}</td>
+                <td>
+                    <form action="/catalogo/reclasificar" method="post" class="fila-reclasificar">
+                        <input type="hidden" name="descripcion" value="{{ p.descripcion }}">
+                        <input type="hidden" name="sku" value="{{ p.sku or '' }}">
+                        <select class="sel-categoria" name="categoria"></select>
+                </td>
+                <td>
+                    <select class="sel-subcategoria" name="subcategoria"></select>
+                </td>
+                <td>
+                    <button type="submit" class="btn-process">Guardar</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No se encontraron productos con ese criterio.</p>
+    {% endif %}
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/utilidades.js"></script>
+<script src="/static/js/modal.js"></script>
+<script>
+    // Variables globales para los módulos JS
+    const ARBOL = {{ arbol_categorias | tojson }};
+    const SIN_CATEGORIA = {{ sin_categoria | tojson }};
+    const SIN_SUBCATEGORIA = {{ sin_subcategoria | tojson }};
+</script>
+<script src="/static/js/validacion.js"></script>
+<script src="/static/js/catalogo.js"></script>
+{% endblock %}

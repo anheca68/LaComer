@@ -1,0 +1,163 @@
+/* ============================================================
+   base.css — Variables, reset, tipografía y layout general
+   ============================================================ */
+
+:root {
+    --color-primario: #2c3e50;
+    --color-secundario: #3d6ea5;
+    --color-acento: #27ae60;
+    --color-peligro: #c0392b;
+    --color-advertencia: #e67e22;
+    --color-fondo: #f4f6f9;
+    --color-texto: #333;
+    --color-texto-claro: #607d8b;
+    --color-borde: #ddd;
+    --color-blanco: #fff;
+    --sombra: 0 2px 4px rgba(0, 0, 0, 0.1);
+    --radio: 8px;
+    --transicion: 0.2s ease;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: var(--color-fondo);
+    margin: 0;
+    color: var(--color-texto);
+    line-height: 1.5;
+}
+
+h1, h2, h3 {
+    color: var(--color-primario);
+    margin-top: 0;
+}
+
+a {
+    color: var(--color-secundario);
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* Layout principal: barra lateral + contenido */
+.app {
+    display: flex;
+    min-height: 100vh;
+}
+
+.lateral {
+    width: 216px;
+    flex-shrink: 0;
+    background: var(--color-primario);
+    color: #cfd8e3;
+    padding: 20px 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.lateral .marca {
+    color: #fff;
+    font-size: 15px;
+    font-weight: bold;
+    padding: 0 20px 4px;
+    line-height: 1.35;
+}
+
+.lateral .version {
+    font-size: 11px;
+    color: #8a9aad;
+    padding: 0 20px 18px;
+}
+
+.lateral nav {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 0 10px;
+}
+
+.lateral nav a {
+    color: #cfd8e3;
+    text-decoration: none;
+    padding: 9px 12px;
+    border-radius: 6px;
+    font-size: 13.5px;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    transition: background var(--transicion);
+}
+
+.lateral nav a:hover {
+    background: #354b60;
+    color: #fff;
+}
+
+.lateral nav a.activo {
+    background: var(--color-secundario);
+    color: #fff;
+    font-weight: bold;
+}
+
+.lateral nav a .icono {
+    width: 16px;
+    text-align: center;
+    opacity: 0.85;
+}
+
+.lateral .grupo {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+    color: #7b8b9e;
+    padding: 16px 20px 6px;
+}
+
+.lateral .pie {
+    margin-top: auto;
+    padding: 14px 20px 0;
+    font-size: 10px;
+    color: #7b8b9e;
+    line-height: 1.5;
+    word-break: break-all;
+}
+
+.principal {
+    flex: 1;
+    min-width: 0;
+    padding: 26px 30px 40px;
+}
+
+.principal > h1 {
+    margin-bottom: 20px;
+}
+
+/* Navegación horizontal (legado, ya no se usa pero se conserva) */
+nav {
+    margin-bottom: 18px;
+}
+
+/* Responsive */
+@media (max-width: 720px) {
+    .app {
+        flex-direction: column;
+    }
+
+    .lateral {
+        width: auto;
+    }
+
+    .lateral nav {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    .principal {
+        padding: 18px;
+    }
+}

@@ -1,0 +1,366 @@
+{% extends "base.html" %}
+{% block titulo %}Carga inicial de histórico{% endblock %}
+
+{% block contenido %}
+<h1>Carga inicial de histórico</h1>
+<p class="muted">
+    Esta pantalla sirve una sola vez: mientras la tabla <code>tickets</code> esté vacía.
+    Al terminar de importar, el acceso se cierra solo.
+</p>
+
+<section class="card">
+    <h2>1. Fuentes</h2>
+    <form method="post" action="/importar/preparar" class="filtros">
+        <div>
+            <label>Qué cargar</label><br>
+            <select name="fuente">
+                <option value="ambas">Las dos (recomendado)</option>
+                <option value="excel">Solo el Excel de histórico</option>
+                <option value="pdfs">Solo los PDF ya archivados</option>
+            </select>
+        </div>
+        <div>
+            <button class="btn" type="submit">Armar plan de importación</button>
+        </div>
+    </form>
+    <p class="muted" style="margin-top:10px">
+        Excel: <code>{{ excel }}</code>
+        {% if not excel_existe %}<strong>— no existe</strong>{% endif %}<br>
+        PDF archivados en <code>procesados/</code>: {{ pdfs }} archivo(s).
+    </p>
+</section>
+
+{% if hay_plan %}
+<section class="card">
+    <h2>2. Revisión</h2>
+
+    <div class="plan-cifras">
+        <div><b>{{ resumen.grupos }}</b><span class="muted">tickets</span></div>
+        <div><b>{{ resumen.renglones }}</b><span class="muted">renglones</span></div>
+        <div><b>$ {{ "{:,.2f}".format(resumen.importe) }}</b><span class="muted">importe</span></div>
+        <div><b>{{ resumen.pendientes }}</b><span class="muted">por condensar</span></div>
+        <div><b>{{ resumen.huerfanos }}</b><span class="muted">sin hora</span></div>
+        <div><b>{{ resumen.excluidos }}</b><span class="muted">excluidos</span></div>
+    </div>
+
+    <p class="muted">
+        Revisa sobre todo lo marcado en ámbar. El establecimiento y la forma de pago
+        no vienen en el Excel: es la información que tienes que capturar tú.
+    </p>
+
+    <div class="plan-lote">
+        <form id="form-lote" onsubmit="return aplicarEnLote()">
+            <div>
+                <label>Establecimiento</label><br>
+                <input type="text" id="lote-establecimiento" value="{{ sugeridos.establecimiento or '' }}"
+                       placeholder="tienda">
+            </div>
+            <div>
+                <label>Forma de pago</label><br>
+                <select id="lote-forma-pago">
+                    {% for o in ["", "TARJETA", "EFECTIVO", "TRANSFERENCIA", "MONEDERO"] %}
+                    <option {{ 'selected' if o == 'TARJETA' }}>{{ o }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <button class="btn" type="submit">Aplicar a todas las filas</button>
+            </div>
+        </form>
+        <p class="muted">
+            Solo rellena lo que esté vacío: no toca lo que ya capturaste.
+            {% if sugeridos %}
+                <br>Ya vienen deducidos de los PDF: {{ sugeridos.get('establecimiento', 0) }} tickets con
+                <code>establecimiento</code> y {{ sugeridos.get('forma_pago', 0) }} con <code>forma de pago</code>.
+            {% endif %}
+        </p>
+    </div>
+
+    <table class="revision" id="tabla-plan">
+        <thead>
+            <tr>
+                <th>Origen</th>
+                <th>Fecha</th>
+                <th>Hora</th>
+                <th class="solo-lectura">Rengl.</th>
+                <th class="solo-lectura">Total</th>
+                <th class="acciones-confirmar">Renglones</th>
+                <th>Establecimiento</th>
+                <th>Forma de pago</th>
+                <th>Diagnóstico</th>
+                <th class="acciones-confirmar">Importar</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td colspan="10" class="muted">Cargando…</td></tr>
+        </tbody>
+    </table>
+
+    <form method="post" action="/importar/guardar" id="form-guardar">
+        <input type="hidden" name="correcciones" id="correcciones-guardar">
+    </form>
+    <form method="post" action="/importar/aplicar" id="form-aplicar" onsubmit="return confirmar()">
+        <input type="hidden" name="correcciones" id="correcciones-aplicar">
+    </form>
+    <p class="muted" id="aviso-lote"></p>
+    <div class="pie-acciones">
+        <button class="btn-guardar" type="submit" form="form-guardar">Guardar cambios</button>
+        <button class="btn-descartar" type="submit" form="form-aplicar" id="btn-aplicar">
+            Importar histórico
+        </button>
+    </div>
+</section>
+{% endif %}
+
+<script>
+const $ = (sel) => document.querySelector(sel);
+let PLAN = { grupos: [], resumen: {} };
+
+async function cargar() {
+    const res = await fetch("/importar/plan");
+    PLAN = await res.json();
+    dibujar();
+}
+
+const dinero = (n) => n.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+const FORMAS = ["", "TARJETA", "EFECTIVO", "TRANSFERENCIA", "MONEDERO"];
+let FILAS = [];
+
+function diagnostics(g) {
+    if (g.motivo_exclusion) return `<div class="plan-diagnostico">${g.motivo_exclusion}</div>`;
+    if (g.nota) return `<div class="plan-nota">${g.nota}</div>`;
+    return g.anomalias.map((a) => `<div class="plan-diagnostico">${a}</div>`).join("");
+}
+
+function dibujar() {
+    const tbody = $("#tabla-plan tbody");
+    // Sin plan todavía no existe la tabla: la primera visita solo muestra el
+    // formulario de fuentes, así que no hay nada que pintar.
+    if (!tbody) return;
+    tbody.innerHTML = "";
+    FILAS = [];
+
+    if (!PLAN.grupos.length) {
+        tbody.innerHTML = `<tr><td colspan="10" class="muted">No hay plan cargado.</td></tr>`;
+        $("#btn-aplicar").disabled = true;
+        return;
+    }
+
+    PLAN.grupos.forEach((g) => {
+        const tr = document.createElement("tr");
+        if (g.anomalia) tr.className = "plan-fila-alerta";
+        if (g.excluir) tr.className += " plan-fila-excluida";
+
+        const sug = g.sugerido || [];
+        tr.innerHTML = `
+            <td>${g.origen === "pdf" ? "PDF" : "Excel"}</td>
+            <td>${g.fecha || "—"}</td>
+            <td>${g.hora || "<span class=muted>sin hora</span>"}</td>
+            <td class="solo-lectura">${g.lineas.length}</td>
+            <td class="solo-lectura">${dinero(g.total)}</td>
+            <td class="acciones-confirmar">
+                <button class="btn-ver" type="button" data-ver>Ver renglones</button>
+            </td>
+            <td><input type="text" value="${esc(g.establecimiento || "")}" placeholder="tienda"
+                       title="${sug.includes("establecimiento") ? "Deducido de los PDF, no venía en el dato original" : ""}"></td>
+            <td><select data-pago>
+                   ${FORMAS.map((o) => `<option ${o === g.forma_pago ? "selected" : ""}>${o}</option>`).join("")}
+               </select></td>
+            <td>${diagnostics(g)}
+                ${g.pendiente === "condensar"
+                    ? `<form method="post" action="/importar/condensar" style="display:inline">
+                         <input type="hidden" name="clave" value="${g.clave}">
+                         <button class="btn-process" type="submit">Dejar una copia</button>
+                       </form>` : ""}
+            </td>
+            <td class="acciones-confirmar"><input type="checkbox" ${g.excluir ? "" : "checked"}></td>`;
+
+        tbody.appendChild(tr);
+        const fila = tbody.lastElementChild;
+        FILAS.push({ g, fila });
+
+        fila.querySelector("input[type=text]").addEventListener("input", (e) => {
+            g.establecimiento = e.target.value;
+            g.sugerido = (g.sugerido || []).filter((c) => c !== "establecimiento");
+        });
+        fila.querySelector("[data-pago]").addEventListener("change", (e) => {
+            g.forma_pago = e.target.value;
+            g.sugerido = (g.sugerido || []).filter((c) => c !== "forma_pago");
+        });
+        fila.querySelector(".acciones-confirmar input").addEventListener("change", (e) => {
+            g.excluir = !e.target.checked;
+            fila.className = (g.anomalia ? "plan-fila-alerta " : "") + (g.excluir ? "plan-fila-excluida" : "");
+        });
+        fila.querySelector("[data-ver]").addEventListener("click", () => alternarDetalle(fila));
+    });
+
+    $("#btn-aplicar").disabled = false;
+}
+
+// ── Detalle de renglones ────────────────────────────────────────────────────
+// Los PDF traen líneas informativas ("RECOGER EN TIENDA", "CAJA 1 PZA") que no
+// son ni un producto ni un cargo: salen con importe cero. Se pueden quitar a
+// mano o todas de golpe con el botón de arriba.
+
+function alternarDetalle(fila) {
+    const abierto = fila.nextElementSibling;
+    if (abierto && abierto.classList.contains("plan-detalle")) {
+        abierto.remove();
+        fila.querySelector("[data-ver]").textContent = "Ver renglones";
+        return;
+    }
+    const g = PLAN.grupos[FILAS.findIndex((f) => f.fila === fila)];
+    const quitar = PLAN.grupos.filter((x) => !x.excluir && tieneCeros(x));
+    fila.insertAdjacentHTML(
+        "afterend",
+        `<tr class="plan-detalle"><td colspan="10">${pintarRenglones(g, quitar.length)}</td></tr>`
+    );
+    fila.querySelector("[data-ver]").textContent = "Ocultar renglones";
+    const nuevo = fila.nextElementSibling;
+    nuevo.querySelectorAll("[data-quitar]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+            const i = Number(btn.dataset.quitar);
+            post("/importar/linea/eliminar", { clave: g.clave, indice: i });
+        });
+    });
+    nuevo.querySelector("[data-agregar]").addEventListener("click", () => {
+        post("/importar/linea/agregar", {
+            clave: g.clave,
+            descripcion: nuevo.querySelector("[data-descripcion]").value,
+            monto: nuevo.querySelector("[data-monto]").value,
+            tipo: nuevo.querySelector("[data-tipo]").value,
+        });
+    });
+    if (quitar.length) {
+        nuevo.querySelector("[data-todos]").addEventListener("click", () => {
+            post("/importar/linea/sin-importe", {});
+        });
+    }
+}
+
+function tieneCeros(g) {
+    return g.lineas.some((l) => l.total === 0 && l.tipo !== "descuento");
+}
+
+function pintarRenglones(g, conCeros) {
+    return `
+        <table class="revision plan-renglones">
+            <thead><tr>
+                <th class="solo-lectura">#</th>
+                <th>Concepto</th>
+                <th class="solo-lectura">Cant.</th>
+                <th class="solo-lectura">Importe</th>
+                <th class="acciones-confirmar"></th>
+            </tr></thead>
+            <tbody>
+                ${g.lineas.map((l, i) => `
+                    <tr class="${l.tipo === "descuento" ? "plan-linea-descuento" : ""}">
+                        <td class="solo-lectura">${i + 1}</td>
+                        <td>${esc(l.descripcion)}${l.tipo === "descuento" ? ' <span class="muted">(descuento)</span>' : ""}</td>
+                        <td class="solo-lectura">${l.cantidad}</td>
+                        <td class="solo-lectura">${dinero(l.total)}</td>
+                        <td class="acciones-confirmar">
+                            <button class="btn-quitar" type="button" data-quitar="${i}"
+                                    title="Quitar este renglón">&times;</button>
+                        </td>
+                    </tr>`).join("")}
+            </tbody>
+        </table>
+        <div class="plan-alta">
+            <input type="text" data-descripcion placeholder="Concepto (p. ej. CASH BACK)">
+            <input type="number" data-monto step="0.01" placeholder="Importe (−67.35)">
+            <select data-tipo>
+                <option value="descuento">Descuento (baja el total)</option>
+                <option value="producto">Producto (sube el total)</option>
+            </select>
+            <button class="btn" type="button" data-agregar>Agregar renglón</button>
+            ${conCeros ? `<button class="btn-limpiar" type="button" data-todos>
+                Quitar los ${conCeros} ticket(s) con renglones sin importe</button>` : ""}
+        </div>
+        ${g.omitidas && g.omitidas.length ? `<p class="muted">Fuera de la compra: ${
+            g.omitidas.map((o) => esc(o.descripcion)).join(", ")}</p>` : ""}`;
+}
+
+// Toda operación sobre renglones va al servidor, que es quien reescribe el plan
+// y recalcula el total. La página se recarga para no mostrar un total que el
+// servidor todavía no ha confirmado.
+function post(url, datos) {
+    const cuerpo = new URLSearchParams();
+    Object.entries(datos).forEach(([k, v]) => cuerpo.append(k, v));
+    fetch(url, { method: "POST", body: cuerpo }).then(() => location.reload());
+}
+
+// Los valores vienen del Excel y del texto del PDF; se escapan antes de tocar
+// innerHTML para que un nombre con comilla o <> no rompa la tabla.
+function esc(s) {
+    return String(s).replace(/[&<>"']/g, (c) => (
+        { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]
+    ));
+}
+
+function aplicarEnLote() {
+    const est = $("#lote-establecimiento").value.trim();
+    const pago = $("#lote-forma-pago").value;
+    let n = 0;
+
+    FILAS.forEach(({ g, fila }) => {
+        if (est && !(g.establecimiento || "").trim()) {
+            g.establecimiento = est;
+            g.sugerido = [...new Set([...(g.sugerido || []), "establecimiento"])];
+            fila.querySelector("input[type=text]").value = est;
+            n++;
+        }
+        if (pago && !(g.forma_pago || "").trim()) {
+            g.forma_pago = pago;
+            g.sugerido = [...new Set([...(g.sugerido || []), "forma_pago"])];
+            fila.querySelector("[data-pago]").value = pago;
+            n++;
+        }
+    });
+
+    const aviso = $("#aviso-lote");
+    aviso.textContent = n
+        ? `${n} campo(s) rellenados. Pulsa "Guardar cambios" para que sobrevivan al refresco.`
+        : "No había campos vacíos que rellenar.";
+    return false;
+}
+
+function correcciones() {
+    return JSON.stringify(PLAN.grupos.map((g) => ({
+        clave: g.clave,
+        establecimiento: g.establecimiento,
+        forma_pago: g.forma_pago,
+        excluir: g.excluir,
+    })));
+}
+
+$("#form-guardar").addEventListener("submit", () => {
+    $("#correcciones-guardar").value = correcciones();
+});
+
+function confirmar() {
+    // Se reescribe en vez de añadirse: si se reintenta el envío no se acumulan
+    // campos ocultos ni el JSON se queda obsoleto.
+    $("#correcciones-aplicar").value = correcciones();
+
+    const pendientes = PLAN.grupos.filter((g) => g.pendiente).length;
+    if (pendientes && !confirm(
+        `Faltan ${pendientes} tickets por condensar. ¿Importar así?`)) {
+        return false;
+    }
+    const total = PLAN.grupos.filter((g) => !g.excluir);
+    const sinTienda = total.filter((g) => !(g.establecimiento || "").trim()).length;
+    let aviso =
+        `Se importarán ${total.length} tickets por $${dinero(
+            total.reduce((s, g) => s + g.total, 0))}.\n` +
+        `La base se escribe en una sola transacción. ¿Continuar?`;
+    if (sinTienda) {
+        aviso += `\n\n${sinTienda} tickets se importarán sin establecimiento.`;
+    }
+    return confirm(aviso);
+}
+
+cargar();
+</script>
+{% endblock %}

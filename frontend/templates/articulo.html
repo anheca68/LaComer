@@ -1,0 +1,230 @@
+{% extends "base.html" %}
+
+{% block titulo %}Consulta por Artículo{% endblock %}
+
+{% block extra_styles %}
+<link rel="stylesheet" href="/static/css/consultas.css">
+{% endblock %}
+
+{% block contenido %}
+<div class="pagina-consulta">
+    <h1>Consulta por Artículo</h1>
+    <p class="descripcion">
+        Busca un artículo por nombre o SKU (usa <code>*</code> como comodín, ej: <code>Caf*</code>)
+        para ver su descripción, categoría, precios durante el año y descuentos por mes.
+    </p>
+
+    <form method="get" action="/articulo" class="formulario-busqueda">
+        <input type="text" name="q" value="{{ texto_busqueda }}"
+               placeholder="Ej: Cafe*, Leche, SKU..." class="input-busqueda">
+        <button type="submit" class="btn-primario">Buscar</button>
+    </form>
+
+    {% if error %}
+    <div class="alert-error">{{ error }}</div>
+    {% endif %}
+
+    {% if detalle %}
+    <div class="detalle-articulo">
+        <div class="cabecera-detalle">
+            <h2>{{ detalle.articulo.descripcion }}</h2>
+            <div class="meta">
+                {% if detalle.articulo.sku %}
+                <span class="badge">SKU: {{ detalle.articulo.sku }}</span>
+                {% endif %}
+                <span class="badge">{{ detalle.articulo.categoria or 'Sin categoría' }}</span>
+                <span class="badge">{{ detalle.articulo.subcategoria or 'Sin subcategoría' }}</span>
+            </div>
+        </div>
+
+        <form method="get" action="/articulo" class="filtro-anio">
+            <input type="hidden" name="id" value="{{ detalle.articulo.id }}">
+            <label for="anio">Año:</label>
+            <select name="anio" id="anio" onchange="this.form.submit()">
+                {% for a in range(2025, 2027) %}
+                <option value="{{ a }}" {% if detalle.anio == a|string %}selected{% endif %}>{{ a }}</option>
+                {% endfor %}
+            </select>
+        </form>
+
+        {% if detalle.meses %}
+        <div class="tabla-contenedor">
+            <h3>Evolución de precios</h3>
+            <div class="grafica-precios" style="height: 300px;">
+                <canvas id="grafico-precios"></canvas>
+            </div>
+        </div>
+
+        <div class="tabla-contenedor">
+            <table class="tabla-datos">
+                <thead>
+                    <tr>
+                        <th>Mes</th>
+                        <th>Compras</th>
+                        <th>Cantidad</th>
+                        <th>Precio Mín</th>
+                        <th>Precio Máx</th>
+                        <th>Precio Prom</th>
+                        <th>Total Gastado</th>
+                        <th>Descuento Ahorrado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for m in detalle.meses %}
+                    <tr>
+                        <td>{{ meses_nombre[m.mes] }}</td>
+                        <td>{{ m.compras }}</td>
+                        <td>{{ m.cantidad_total }}</td>
+                        <td>${{ "%.2f"|format(m.precio_min) }}</td>
+                        <td>${{ "%.2f"|format(m.precio_max) }}</td>
+                        <td>${{ "%.2f"|format(m.precio_promedio) }}</td>
+                        <td>${{ "%.2f"|format(m.total_gastado) }}</td>
+                        <td class="ahorro">${{ "%.2f"|format(m.descuento_ahorrado) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="totales-anuales">
+            <h3>Totales del año {{ detalle.anio }}</h3>
+            <div class="grid-totales">
+                <div class="tarjeta-total">
+                    <span class="etiqueta">Total Compras</span>
+                    <span class="valor">{{ detalle.totales.total_compras }}</span>
+                </div>
+                <div class="tarjeta-total">
+                    <span class="etiqueta">Cantidad Total</span>
+                    <span class="valor">{{ detalle.totales.cantidad_total }}</span>
+                </div>
+                <div class="tarjeta-total">
+                    <span class="etiqueta">Total Gastado</span>
+                    <span class="valor">${{ "%.2f"|format(detalle.totales.total_gastado) }}</span>
+                </div>
+                <div class="tarjeta-total destacada">
+                    <span class="etiqueta">Descuento Total</span>
+                    <span class="valor ahorro">${{ "%.2f"|format(detalle.totales.descuento_total) }}</span>
+                </div>
+                <div class="tarjeta-total">
+                    <span class="etiqueta">Precio Promedio</span>
+                    <span class="valor">${{ "%.2f"|format(detalle.totales.precio_promedio_anual) }}</span>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="alert-info">
+            No hay compras registradas para este artículo en el año {{ detalle.anio }}.
+        </div>
+        {% endif %}
+
+        <a href="/articulo" class="btn-secundario">Nueva búsqueda</a>
+    </div>
+
+    {% elif resultados %}
+    <div class="resultados-busqueda">
+        <h2>Resultados para "{{ texto_busqueda }}"</h2>
+        <p>{{ resultados|length }} artículo(s) encontrado(s)</p>
+        <div class="lista-resultados">
+            {% for r in resultados %}
+            <a href="/articulo?id={{ r.id }}" class="item-resultado">
+                <div class="nombre">{{ r.descripcion }}</div>
+                <div class="meta">
+                    {% if r.sku %}<span class="badge">SKU: {{ r.sku }}</span>{% endif %}
+                    <span class="badge">{{ r.categoria or 'Sin categoría' }}</span>
+                    <span class="badge">{{ r.subcategoria or 'Sin subcategoría' }}</span>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+
+    {% elif texto_busqueda and texto_busqueda|length >= 2 %}
+    <div class="alert-info">
+        No se encontraron artículos que coincidan con "{{ texto_busqueda }}".
+    </div>
+    {% endif %}
+
+    {% if not detalle and tickets_recientes %}
+    <div class="tickets-recientes">
+        <h3>Tickets recientes</h3>
+        <div class="lista-tickets-mini">
+            {% for t in tickets_recientes[:5] %}
+            <a href="/ticket?q={{ t.id }}" class="item-ticket-mini">
+                <span class="fecha">{{ t.fecha }}</span>
+                <span class="folio">{{ t.folio or 'Sin folio' }}</span>
+                <span class="total">${{ "%.2f"|format(t.total) }}</span>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+// Nombres de meses en español para la tabla
+const mesesNombre = {
+    '01': 'Enero', '02': 'Febrero', '03': 'Marzo', '04': 'Abril',
+    '05': 'Mayo', '06': 'Junio', '07': 'Julio', '08': 'Agosto',
+    '09': 'Septiembre', '10': 'Octubre', '11': 'Noviembre', '12': 'Diciembre'
+};
+
+{% if detalle %}
+// Gráfico de evolución de precios
+(async () => {
+    try {
+        const resp = await fetch('/api/articulos/precios/{{ detalle.articulo.id }}?anio={{ detalle.anio }}');
+        const datos = await resp.json();
+        if (datos.labels) {
+            new Chart(document.getElementById('grafico-precios'), {
+                type: 'line',
+                data: {
+                    labels: datos.labels.map(m => mesesNombre[m] || m),
+                    datasets: [
+                        {
+                            label: 'Precio mín',
+                            data: datos.min,
+                            borderColor: '#22c55e',
+                            backgroundColor: 'rgba(34,197,94,0.1)',
+                            fill: false,
+                            tension: 0.3
+                        },
+                        {
+                            label: 'Precio prom',
+                            data: datos.promedio,
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'rgba(59,130,246,0.1)',
+                            fill: false,
+                            tension: 0.3
+                        },
+                        {
+                            label: 'Precio máx',
+                            data: datos.max,
+                            borderColor: '#ef4444',
+                            backgroundColor: 'rgba(239,68,68,0.1)',
+                            fill: false,
+                            tension: 0.3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: { display: true, text: 'Evolución de precios en {{ detalle.anio }}' }
+                    },
+                    scales: {
+                        y: { ticks: { callback: v => '$' + v.toFixed(2) } }
+                    }
+                }
+            });
+        }
+    } catch (e) {
+        console.error('No se pudo cargar el gráfico de precios:', e);
+    }
+})();
+{% endif %}
+</script>
+{% endblock %}

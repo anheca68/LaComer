@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+
+{% block titulo %}Informe {{ ticket.archivo }}{% endblock %}
+
+{% block extra_styles %}
+<style>
+    body { background: #f4f6f8; }
+
+    .hoja {
+        max-width: 900px;
+        margin: 0 auto;
+        background: #fff;
+        padding: 32px 36px;
+        border: 1px solid #dfe4e8;
+    }
+
+    .reporte-encabezado {
+        border-bottom: 3px solid #2e7d32;
+        padding-bottom: 14px;
+        margin-bottom: 18px;
+    }
+
+    .reporte-encabezado h1 { margin: 0 0 4px; font-size: 21px; }
+    .reporte-meta { color: #666; font-size: 13px; }
+
+    .reporte-cifras {
+        display: flex;
+        gap: 28px;
+        margin: 16px 0 22px;
+        flex-wrap: wrap;
+    }
+
+    .reporte-cifras div { font-size: 14px; }
+    .reporte-cifras strong {
+        display: block;
+        font-size: 18px;
+        color: #2e7d32;
+    }
+
+    table.rep { width: 100%; border-collapse: collapse; font-size: 12px; }
+    table.rep th, table.rep td {
+        border: 1px solid #d8dee3;
+        padding: 5px 7px;
+        text-align: left;
+    }
+    table.rep thead th { background: #eceff1; }
+    table.rep tfoot td { background: #eceff1; font-weight: bold; }
+    tr.falta td { background: #fdecea; }
+
+    .semaforo { font-size: 11px; padding: 1px 6px; border-radius: 3px; }
+    .semaforo.ok { background: #e3f2e5; color: #1b5e20; }
+    .semaforo.floja { background: #fff4d6; color: #7a5b00; }
+    .semaforo.mal { background: #fdecea; color: #b3261e; }
+
+    .aviso {
+        background: #fdecea;
+        border: 1px solid #f5c6c2;
+        color: #8c1d16;
+        padding: 10px 14px;
+        margin-bottom: 18px;
+        font-size: 13px;
+    }
+
+    .barra-imprimir {
+        max-width: 900px;
+        margin: 0 auto 14px;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+    .barra-imprimir p { margin: 0; color: #666; font-size: 13px; }
+
+    @media print {
+        body { background: #fff; }
+        .barra-imprimir, .no-imprimir { display: none !important; }
+        .hoja { border: 0; padding: 0; max-width: none; }
+        table.rep { font-size: 10px; }
+        table.rep th, table.rep td { padding: 3px 5px; }
+        thead { display: table-header-group; }
+        tr { page-break-inside: avoid; }
+    }
+</style>
+{% endblock %}
+
+{% block contenido %}
+<div class="barra-imprimir">
+    <button type="button" onclick="window.print()">Imprimir / Guardar como PDF</button>
+    <a class="boton-secundario" href="/tickets">Volver a la revisión</a>
+    <p>En el diálogo de impresión elige <em>Guardar como PDF</em>.</p>
+</div>
+
+<div class="hoja">
+    <div class="reporte-encabezado">
+        <h1>Reporte de validación de compra</h1>
+        <div class="reporte-meta">
+            Ticket: <strong>{{ ticket.archivo }}</strong> ·
+            Procesado: {{ ticket.procesado or "sin fecha" }} ·
+            Generado: {{ ahora }}
+        </div>
+    </div>
+
+    <div class="reporte-cifras">
+        <div>Artículos<strong>{{ resumen.articulos }}</strong></div>
+        <div>Cantidad total<strong>{{ resumen.cantidad }}</strong></div>
+        <div>Importe<strong>${{ "{:,.2f}".format(conciliacion.total_a_registrar) }}</strong></div>
+        <div>Con categoría<strong>{{ completos }} / {{ resumen.articulos }}</strong></div>
+    </div>
+
+    {% if incompletos %}
+    <div class="aviso">
+        <strong>Validación incompleta.</strong>
+        {{ incompletos | length }} renglón(es) todavía no tienen categoría o subcategoría,
+        por lo que este ticket no puede confirmarse.
+    </div>
+    {% endif %}
+
+    <table class="rep">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>SKU</th>
+                <th>Artículo</th>
+                <th>Categoría</th>
+                <th>Subcategoría</th>
+                <th class="num">Cant.</th>
+                <th class="num">P. Unit.</th>
+                <th class="num">Importe</th>
+                <th>Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for art in ticket.articulos %}
+            {% set idx = loop.index0 %}
+            <tr class="{{ 'falta' if idx in faltantes else '' }}">
+                <td>{{ loop.index }}</td>
+                <td>{{ art.sku or "—" }}</td>
+                <td>{{ art.articulo }}</td>
+                <td>{{ art.categoria }}</td>
+                <td>{{ art.subcategoria }}</td>
+                <td class="num">{{ art.cantidad or 0 }}</td>
+                <td class="num">{{ "{:,.2f}".format(art.precio or 0) }}</td>
+                <td class="num">{{ "{:,.2f}".format(art.total or 0) }}</td>
+                <td>
+                    {% if idx in faltantes %}
+                        <span class="semaforo mal">Incompleto</span>
+                    {% elif art.en_catalogo %}
+                        <span class="semaforo ok">En catálogo</span>
+                    {% else %}
+                        <span class="semaforo floja">Nuevo{% if art.registrar_producto is not false %} · se guardará{% endif %}</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="5">SUBTOTAL ARTÍCULOS ({{ resumen.articulos }} renglones)</td>
+                <td class="num">{{ resumen.cantidad }}</td>
+                <td class="num"></td>
+                <td class="num">{{ "{:,.2f}".format(conciliacion.productos) }}</td>
+                <td></td>
+            </tr>
+            {% if conciliacion.cash_back < 0 %}
+            <tr>
+                <td colspan="5">
+                    CASH BACK ·
+                    {% for d in conciliacion.desglose %}{{ d.articulo }} {{ "%.2f"|format(d.total) }}{% if not loop.last %}; {% endif %}{% endfor %}
+                    {% if conciliacion.ajuste %}; ajuste {{ "%.2f"|format(conciliacion.ajuste) }}{% endif %}
+                </td>
+                <td class="num">1</td>
+                <td class="num"></td>
+                <td class="num">{{ "{:,.2f}".format(conciliacion.cash_back) }}</td>
+                <td><span class="semaforo ok">Descuento</span></td>
+            </tr>
+            {% endif %}
+            <tr>
+                <td colspan="7">TOTAL{% if conciliacion.total_ticket is not none %} (ticket: {{ "{:,.2f}".format(conciliacion.total_ticket) }}){% endif %}</td>
+                <td class="num">{{ "{:,.2f}".format(conciliacion.calculado) }}</td>
+                <td>
+                    <span class="semaforo {{ 'ok' if conciliacion.estado == 'cuadra' else ('mal' if conciliacion.bloquea else 'floja') }}">
+                        {{ {'cuadra': 'Cuadra', 'ajuste': 'Con ajuste', 'faltante': 'No cuadra', 'sin_total': 'Sin total'}[conciliacion.estado] }}
+                    </span>
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+{% endblock %}

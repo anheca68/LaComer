@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block titulo %}Registro de cambios{% endblock %}
+
+{% block extra_styles %}
+<link rel="stylesheet" href="/static/css/catalogo.css">
+<style>
+    .log-filtro {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+    .log-filtro select {
+        width: auto;
+        min-width: 180px;
+    }
+    .log-tabla {
+        font-size: 12px;
+    }
+    .log-tabla td {
+        padding: 6px 8px;
+    }
+    .log-accion {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 3px;
+        font-size: 11px;
+        font-weight: bold;
+    }
+    .log-INSERT { background: #d4edda; color: #155724; }
+    .log-UPDATE { background: #fff4e5; color: #a04000; }
+    .log-DELETE { background: #fdecea; color: #b3261e; }
+    .log-valor {
+        max-width: 200px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+</style>
+{% endblock %}
+
+{% block contenido %}
+
+<div class="card">
+    <h2>Registro de cambios en la base de datos</h2>
+    <p class="muted">
+        Cada creación, modificación o eliminación de categorías, subcategorías y productos
+        queda registrada aquí. Permite auditar qué se cambió y cuándo.
+    </p>
+
+    <form method="get" action="/log" class="log-filtro">
+        <label for="tabla">Filtrar por tabla:</label>
+        <select name="tabla" id="tabla" onchange="this.form.submit()">
+            <option value="">Todas</option>
+            <option value="categorias" {{ 'selected' if tabla_filtro == 'categorias' }}>Categorías</option>
+            <option value="subcategorias" {{ 'selected' if tabla_filtro == 'subcategorias' }}>Subcategorías</option>
+            <option value="productos" {{ 'selected' if tabla_filtro == 'productos' }}>Productos</option>
+        </select>
+        {% if tabla_filtro %}
+        <a href="/log" class="boton-secundario">Limpiar filtro</a>
+        {% endif %}
+    </form>
+</div>
+
+{% if cambios %}
+<div class="card">
+    <h3>Últimos cambios ({{ cambios|length }})</h3>
+    <table class="log-tabla">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Fecha</th>
+                <th>Tabla</th>
+                <th>Registro</th>
+                <th>Acción</th>
+                <th>Campo</th>
+                <th>Valor anterior</th>
+                <th>Valor nuevo</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for c in cambios %}
+            <tr>
+                <td>{{ c.id }}</td>
+                <td>{{ c.creado_en }}</td>
+                <td>{{ c.tabla }}</td>
+                <td>#{{ c.registro_id }}</td>
+                <td><span class="log-accion log-{{ c.accion }}">{{ c.accion }}</span></td>
+                <td>{{ c.campo or '—' }}</td>
+                <td class="log-valor" title="{{ c.valor_anterior or '' }}">
+                    {{ c.valor_anterior or '—' }}
+                </td>
+                <td class="log-valor" title="{{ c.valor_nuevo or '' }}">
+                    {{ c.valor_nuevo or '—' }}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="card">
+    <p class="muted">No hay cambios registrados todavía.</p>
+</div>
+{% endif %}
+
+{% endblock %}

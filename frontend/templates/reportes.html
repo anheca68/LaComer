@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+{% block titulo %}Reportes{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .rejilla-reportes {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+        gap: 18px;
+    }
+
+    .opcion {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+        padding: 18px;
+        border: 1px solid #e3e8ee;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .opcion h3 {
+        margin: 0 0 5px;
+        font-size: 15px;
+    }
+
+    .opcion .estado {
+        align-self: flex-start;
+        font-size: 10.5px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-radius: 11px;
+        padding: 3px 10px;
+        margin-bottom: 11px;
+        font-weight: bold;
+    }
+
+    .estado.lista {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .estado.pendiente {
+        background: #fdf3d8;
+        color: #856404;
+    }
+
+    .opcion p {
+        font-size: 13px;
+        color: #5a6b7c;
+        line-height: 1.55;
+        margin: 0 0 14px;
+        flex: 1;
+    }
+
+    .opcion ul {
+        font-size: 12.5px;
+        color: #5a6b7c;
+        line-height: 1.7;
+        margin: 0 0 14px;
+        padding-left: 18px;
+    }
+
+    .aviso-pendiente {
+        background: #fffaf0;
+        border-left: 4px solid #e0a800;
+        padding: 13px 16px;
+        border-radius: 6px;
+        font-size: 13px;
+        line-height: 1.6;
+        color: #6b5a1e;
+        margin-bottom: 20px;
+    }
+
+</style>
+{% endblock %}
+
+{% block contenido %}
+
+<h1>Reportes</h1>
+
+<div class="aviso-pendiente">
+    <strong>El reporte en PDF está pendiente de definir.</strong>
+    Falta decidir qué debe contener: cobertura (mensual, anual, por categoría),
+    si incluye el detalle de cada ticket o solo totales, y si lleva comparativa
+    contra otros períodos. Hasta que se defina, el botón queda deshabilitado en
+    lugar de generar un PDF vacío.
+</div>
+
+<div class="rejilla-reportes">
+
+    <div class="opcion">
+        <div class="estado lista">Disponible</div>
+        <h3>Exportar a Excel</h3>
+        <p>
+            Libro <code>.xlsx</code> con siete hojas: resumen, desglose mensual,
+            gasto por categoría, subcategorías, top productos, gasto por día de la
+            semana y el detalle completo línea por línea.
+        </p>
+        <ul>
+            <li>Las hojas traen filtros y panel inmovilizado.</li>
+            <li>Los importes ya vienen formateados como moneda.</li>
+            <li>El detalle conserva <code>ticket_id</code> y <code>linea</code>,
+                así que cualquier cifra se puede rastrear a su origen.</li>
+        </ul>
+        <a class="boton boton-primario" href="{{ excel_url }}">Descargar .xlsx</a>
+    </div>
+
+    <div class="opcion">
+        <div class="estado pendiente">Por definir</div>
+        <h3>Reporte en PDF</h3>
+        <p>
+            Informe imprimible con el gasto consolidado. La estructura está
+            pendiente de que se defina el contenido.
+        </p>
+        <ul>
+            <li><strong>Período:</strong> ¿mensual, trimestral, anual o libre?</li>
+            <li><strong>Alcance:</strong> ¿totales por categoría o también el
+                detalle de cada compra?</li>
+            <li><strong>Comparativas:</strong> ¿contra el mes o año anterior,
+                contra el promedio, o ambas?</li>
+            <li><strong>Gráficas:</strong> ¿cuáles y en qué formato?</li>
+            <li><strong>Destinatario:</strong> ¿uso propio o se comparte con
+                alguien más?</li>
+        </ul>
+        <span class="boton boton-apagado" aria-disabled="true">Generar PDF</span>
+    </div>
+
+    <div class="opcion">
+        <div class="estado disponible">Disponible</div>
+        <h3>Resumen imprimible</h3>
+        <p>
+            Vista de una compra concreta con sus renglones y totales. Sirve para
+            revisar o archivar un ticket suelto.
+        </p>
+        <ul>
+            <li>Se abre desde la pantalla de tickets, en cada compra en revisión.</li>
+            <li>Para guardarla: imprimir &rarr; Guardar como PDF.</li>
+        </ul>
+        <a class="boton boton-primario" href="/tickets">Ir a Tickets</a>
+    </div>
+
+</div>
+
+{% if ind and ind.primer_mes %}
+<div class="card" style="margin-top:22px;">
+    <h3 style="margin-top:0;">Datos que alimentan los reportes</h3>
+    <p class="muted">
+        {{ ind.renglones }} renglones confirmados entre {{ ind.primer_mes }} y
+        {{ ind.ultimo_mes.mes }}, por un total neto de
+        <strong>$ {{ "{:,.2f}".format(ind.gasto_neto) }}</strong> en
+        {{ ind.tickets }} tickets.
+    </p>
+</div>
+{% endif %}
+
+{% endblock %}

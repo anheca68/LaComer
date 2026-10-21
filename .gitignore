@@ -1,5 +1,6 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
+*.pyc
 *.py[codz]
 *$py.class
 
@@ -218,3 +219,9 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Archivos del sistema de macOS
+.DS_Store
+._.DS_Store
+.Spotlight-V100
+.Trashes

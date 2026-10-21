@@ -10,7 +10,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from backend.config import CATALOGO_DB_PATH
+from backend.config import BACKUPS_DIR, CATALOGO_DB_PATH
 from backend.database import get_db_connection
 from backend.services.catalogo import normalizar
 
@@ -138,7 +138,7 @@ def crear_copia_seguridad() -> Path:
 
     Devuelve la ruta de la copia creada.
     """
-    backup_dir = CATALOGO_DB_PATH.parent / "backups"
+    backup_dir = BACKUPS_DIR
     backup_dir.mkdir(parents=True, exist_ok=True)
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -212,7 +212,7 @@ def fusionar_productos(grupo: Dict[str, Any], canonical_id: int) -> Dict[str, An
 
 def obtener_copias_seguridad() -> List[Dict[str, Any]]:
     """Lista las copias de seguridad disponibles."""
-    backup_dir = CATALOGO_DB_PATH.parent / "backups"
+    backup_dir = BACKUPS_DIR
     if not backup_dir.exists():
         return []
 

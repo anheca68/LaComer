@@ -250,3 +250,7 @@ backend/staging/
 backend/descartados/
 backend/procesados/
 procesados/
+
+# Datos persistentes del despliegue con Docker
+/data/
+/backups/

@@ -233,8 +233,14 @@ def restaurar_copia_seguridad(ruta: str) -> bool:
 
     Crea una copia de la BD actual antes de restaurar.
     """
-    backup_path = Path(ruta)
-    if not backup_path.exists():
+    backup_path = Path(ruta).resolve()
+    # Solo se aceptan copias de la carpeta de respaldos: la ruta llega del
+    # formulario y cualquier otro archivo se copiaría encima de la base.
+    if (
+        backup_path.parent != BACKUPS_DIR.resolve()
+        or not backup_path.match("despensa_backup_*.db")
+        or not backup_path.is_file()
+    ):
         return False
 
     # Crear copia de seguridad de la BD actual antes de restaurar

@@ -50,9 +50,10 @@
 
 .modal-input {
     width: 100%;
-    padding: 8px 12px;
-    border: 1px solid #b0bec5;
-    border-radius: 4px;
+    padding: 9px 12px;
+    border: 1px solid var(--color-borde-fuerte);
+    border-radius: var(--radio-sm);
+    font-family: inherit;
     font-size: 14px;
     margin-top: 10px;
 }
@@ -60,7 +61,7 @@
 .modal-input:focus {
     outline: none;
     border-color: var(--color-secundario);
-    box-shadow: 0 0 0 2px rgba(61, 110, 165, 0.2);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
 }
 
 .modal-footer {
@@ -68,7 +69,7 @@
     display: flex;
     justify-content: flex-end;
     gap: 10px;
-    border-top: 1px solid #e0e4e7;
+    border-top: 1px solid var(--color-borde);
 }
 
 .modal-footer button {
@@ -76,11 +77,11 @@
 }
 
 .modal-footer .btn-cancelar {
-    background: #455a64;
+    background: #64748b;
 }
 
 .modal-footer .btn-cancelar:hover {
-    background: #37474f;
+    background: #475569;
 }
 
 .modal-footer .btn-confirmar {
@@ -88,7 +89,7 @@
 }
 
 .modal-footer .btn-confirmar:hover {
-    background: #219150;
+    background: var(--color-acento-oscuro);
 }
 
 /* Animaciones */

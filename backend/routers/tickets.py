@@ -1,5 +1,6 @@
 import hashlib
 import json
+import re
 from datetime import datetime
 from pathlib import Path
 from typing import List
@@ -32,6 +33,7 @@ from backend.services.registro import (
     conciliar,
     confirmar_y_registrar,
     sha256_de,
+    sha256_de_ticket,
     ya_registrado,
 )
 from backend.web import render
@@ -40,8 +42,10 @@ from backend.services.staging import (
     cargar_staging,
     construir_ticket_id,
     crear_staging_desde_ticket,
+    crear_staging_manual,
     eliminar_staging,
     guardar_staging,
+    identidad_manual,
     listar_staging,
 )
 
@@ -82,6 +86,92 @@ def _redir(mensaje: str = None, error: str = None) -> RedirectResponse:
     sufijo = "&".join(partes)
     return RedirectResponse(url=f"/tickets?{sufijo}" if sufijo else "/tickets",
                         status_code=303)
+
+
+MESES_ABREV = (
+    "Ene", "Feb", "Mar", "Abr", "May", "Jun",
+    "Jul", "Ago", "Sep", "Oct", "Nov", "Dic",
+)
+
+
+def _renglon_manual_inicial() -> dict:
+    return {
+        "descripcion": "",
+        "sku": "",
+        "cantidad": "1",
+        "precio_regular": "",
+        "precio_promocion": "",
+        "total": "",
+        "categoria": "",
+        "subcategoria": "",
+        "registrar_producto": True,
+    }
+
+
+def _form_manual_inicial() -> dict:
+    ahora = datetime.now()
+    return {
+        "fecha": ahora.strftime("%Y-%m-%d"),
+        "hora": ahora.strftime("%H:%M"),
+        "establecimiento": "",
+        "folio": "",
+        "forma_pago": "TARJETA",
+        "tarjeta": "",
+        "rfc_emisor": "",
+        "cliente": "",
+        "total_ticket": "",
+        "notas": "",
+    }
+
+
+def _render_manual(
+    request: Request,
+    *,
+    error: str = None,
+    form: dict = None,
+    filas: list = None,
+):
+    return render(
+        request,
+        "ticket_manual.html",
+        "ticket_manual",
+        context={
+            "error": error,
+            "form": form or _form_manual_inicial(),
+            "filas": filas if filas is not None else [_renglon_manual_inicial()],
+            "arbol_categorias": obtener_arbol_categorias(),
+            "sin_categoria": SIN_CATEGORIA,
+            "sin_subcategoria": SIN_SUBCATEGORIA,
+        },
+    )
+
+
+def _leer_renglones_manual(texto: str) -> list:
+    try:
+        filas = json.loads(texto or "[]")
+    except json.JSONDecodeError as exc:
+        raise ValueError("No se pudieron leer los renglones enviados.") from exc
+    if not isinstance(filas, list) or not filas:
+        raise ValueError("Agrega al menos un renglón al ticket.")
+    if len(filas) > 200:
+        raise ValueError("La captura manual admite como máximo 200 renglones.")
+    if any(not isinstance(fila, dict) for fila in filas):
+        raise ValueError("Los renglones enviados tienen un formato inválido.")
+    return filas
+
+
+def _numero_manual(valor, campo: str, default=None):
+    texto = "" if valor is None else str(valor).strip()
+    if not texto:
+        return default
+    try:
+        return float(texto.replace(",", "."))
+    except ValueError as exc:
+        raise ValueError(f"El campo «{campo}» no es un número válido.") from exc
+
+
+def _fecha_manual_visible(fecha) -> str:
+    return f"{fecha.day:02d}/{MESES_ABREV[fecha.month - 1]}/{fecha.strftime('%y')}"
 
 
 @router.get("/tickets", response_class=HTMLResponse)
@@ -129,6 +219,164 @@ async def tickets(request: Request, mensaje: str = None, aviso: str = None,
             "aviso": aviso,
             "error": error or error_catalogo,
         },
+    )
+
+
+@router.get("/tickets/manual", response_class=HTMLResponse)
+async def ticket_manual(request: Request):
+    """Formulario para capturar un ticket sin PDF."""
+    return _render_manual(request)
+
+
+@router.post("/tickets/manual")
+async def crear_ticket_manual(
+    request: Request,
+    fecha: str = Form(...),
+    hora: str = Form(""),
+    establecimiento: str = Form(""),
+    folio: str = Form(""),
+    forma_pago: str = Form("TARJETA"),
+    tarjeta: str = Form(""),
+    rfc_emisor: str = Form(""),
+    cliente: str = Form(""),
+    total_ticket: str = Form(""),
+    notas: str = Form(""),
+    renglones: str = Form("[]"),
+):
+    """Valida la captura manual y la deja en la sección de revisión."""
+    form = {
+        "fecha": fecha,
+        "hora": hora,
+        "establecimiento": establecimiento,
+        "folio": folio,
+        "forma_pago": forma_pago,
+        "tarjeta": tarjeta,
+        "rfc_emisor": rfc_emisor,
+        "cliente": cliente,
+        "total_ticket": total_ticket,
+        "notas": notas,
+    }
+    filas = []
+
+    try:
+        filas = _leer_renglones_manual(renglones)
+        try:
+            fecha_dt = datetime.strptime(fecha.strip(), "%Y-%m-%d").date()
+        except ValueError as exc:
+            raise ValueError("La fecha del ticket no es válida.") from exc
+
+        hora_limpia = hora.strip()
+        if hora_limpia:
+            try:
+                hora_limpia = datetime.strptime(hora_limpia, "%H:%M").strftime("%H:%M")
+            except ValueError as exc:
+                raise ValueError("La hora del ticket no es válida.") from exc
+
+        articulos = []
+        for indice, fila in enumerate(filas, start=1):
+            descripcion = str(fila.get("descripcion") or "").strip()
+            if not descripcion:
+                raise ValueError(f"El renglón {indice} necesita una descripción.")
+
+            cantidad = _numero_manual(
+                fila.get("cantidad"), f"cantidad del renglón {indice}"
+            )
+            if cantidad is None or cantidad <= 0:
+                raise ValueError(f"La cantidad del renglón {indice} debe ser mayor a cero.")
+
+            precio_regular = _numero_manual(
+                fila.get("precio_regular"), f"precio regular del renglón {indice}", 0.0
+            )
+            if precio_regular is None or precio_regular < 0:
+                raise ValueError(f"El precio regular del renglón {indice} no es válido.")
+
+            precio_promocion = _numero_manual(
+                fila.get("precio_promocion"), f"precio promocional del renglón {indice}"
+            )
+            if precio_promocion is not None and precio_promocion < 0:
+                raise ValueError(f"El precio promocional del renglón {indice} no es válido.")
+
+            total = _numero_manual(fila.get("total"), f"total del renglón {indice}")
+            if total is None:
+                total = round(
+                    cantidad * (
+                        precio_promocion
+                        if precio_promocion is not None
+                        else precio_regular
+                    ),
+                    2,
+                )
+            if total < 0:
+                raise ValueError(f"El total del renglón {indice} no es válido.")
+
+            articulos.append(
+                {
+                    "articulo": descripcion,
+                    "sku": str(fila.get("sku") or "").strip(),
+                    "cantidad": cantidad,
+                    "precio_regular": precio_regular,
+                    "precio_promocion": precio_promocion,
+                    "total": round(total, 2),
+                    "categoria": str(fila.get("categoria") or "").strip(),
+                    "subcategoria": str(fila.get("subcategoria") or "").strip(),
+                    "registrar_producto": bool(fila.get("registrar_producto", True)),
+                    "tipo": "producto",
+                }
+            )
+
+        suma = round(sum(a["total"] for a in articulos), 2)
+        total = _numero_manual(total_ticket, "total del ticket")
+        if total is None:
+            total = suma
+        elif total < 0:
+            raise ValueError("El total del ticket no es válido.")
+        elif abs(total - suma) > 0.01:
+            raise ValueError(
+                f"El total del ticket (${total:,.2f}) no coincide con la suma de "
+                f"los renglones (${suma:,.2f}). Corrige los importes o el total."
+            )
+
+        digitos_tarjeta = re.sub(r"\D", "", tarjeta)
+        tarjeta_corta = digitos_tarjeta[-4:] if digitos_tarjeta else ""
+        nota = "Carga manual."
+        if notas.strip():
+            nota += " " + notas.strip()
+
+        datos = {
+            "rfc_emisor": rfc_emisor.strip().upper(),
+            "regimen_fiscal": "",
+            "cliente": cliente.strip(),
+            "tarjeta": tarjeta_corta,
+            "fecha_compra": _fecha_manual_visible(fecha_dt),
+            "hora_compra": hora_limpia,
+            "fecha_iso": fecha_dt.isoformat(),
+            "folio": folio.strip(),
+            "establecimiento": establecimiento.strip(),
+            "total_ticket": round(total, 2),
+            "iva": None,
+            "ieps": None,
+            "articulos_declarados": len(articulos),
+            "ahorro": 0.0,
+            "articulos": articulos,
+            "descuentos": [],
+            "origen": "manual",
+            "notas": nota,
+        }
+        ticket_id, archivo = identidad_manual()
+        ticket = crear_staging_manual(datos, ticket_id, archivo)
+    except ValueError as exc:
+        return _render_manual(
+            request,
+            error=str(exc),
+            form=form,
+            filas=filas or None,
+        )
+
+    return _redir(
+        mensaje=(
+            f"Captura manual '{ticket['archivo']}' lista para revisar "
+            f"({len(ticket['articulos'])} renglones)."
+        )
     )
 
 
@@ -351,14 +599,20 @@ async def confirmar_ticket(
             )
         )
 
-    pdf = UPLOAD_DIR / ticket["archivo"]
-    if not pdf.is_file():
-        return _redir(error=f"No se encontró el PDF '{ticket['archivo']}' en uploads/.")
+    es_manual = ticket.get("origen") == "manual"
+    pdf = None
+    if es_manual:
+        sha256 = sha256_de_ticket(ticket)
+    else:
+        pdf = UPLOAD_DIR / ticket["archivo"]
+        if not pdf.is_file():
+            return _redir(error=f"No se encontró el PDF '{ticket['archivo']}' en uploads/.")
+        sha256 = sha256_de(pdf)
 
     # 1. Catálogo y base de datos, en una sola transacción: si algo falla no
     #    se escribe nada y el ticket sigue en revisión.
     try:
-        informe = confirmar_y_registrar(ticket, cambios, sha256_de(pdf))
+        informe = confirmar_y_registrar(ticket, cambios, sha256)
     except (ErrorRegistro, ErrorCatalogo) as e:
         return _redir(error=f"No se confirmó '{ticket['archivo']}': {e}")
     except Exception as e:
@@ -369,7 +623,8 @@ async def confirmar_ticket(
     csv_salida = RESULTADOS_DIR / f"{ticket_id}_categorizado.csv"
     try:
         guardar_csv(ticket, str(csv_salida))
-        pdf.replace(PROCESADOS_DIR / ticket["archivo"])
+        if pdf is not None:
+            pdf.replace(PROCESADOS_DIR / ticket["archivo"])
         eliminar_staging(ticket_id)
     except Exception as e:
         return _redir(

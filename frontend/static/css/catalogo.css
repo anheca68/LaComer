@@ -35,7 +35,7 @@
 }
 
 .tabla-catalogo tr:hover {
-    background: #f5f7fa;
+    background: var(--color-superficie-alt);
 }
 
 /* Formulario de reclasificación */

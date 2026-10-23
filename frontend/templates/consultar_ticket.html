@@ -39,6 +39,9 @@
                 {% if ticket.establecimiento %}
                 <span class="badge">{{ ticket.establecimiento }}</span>
                 {% endif %}
+                {% if ticket.origen == 'manual' %}
+                <span class="badge">Captura manual</span>
+                {% endif %}
             </div>
         </div>
 

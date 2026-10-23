@@ -94,6 +94,7 @@
         <h1>Reporte de validación de compra</h1>
         <div class="reporte-meta">
             Ticket: <strong>{{ ticket.archivo }}</strong> ·
+            {% if ticket.origen == 'manual' %}Captura manual · {% endif %}
             Procesado: {{ ticket.procesado or "sin fecha" }} ·
             Generado: {{ ahora }}
         </div>

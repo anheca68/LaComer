@@ -4,9 +4,10 @@
 
 /* Ticket en revisión */
 .ticket-revision {
-    border: 1px solid #cfd8dc;
-    border-radius: 6px;
-    padding: 15px;
+    background: #fbfdff;
+    border: 1px solid var(--color-borde);
+    border-radius: var(--radio-sm);
+    padding: 16px;
     margin-bottom: 20px;
 }
 
@@ -17,12 +18,137 @@
 
 .ticket-meta {
     font-size: 13px;
-    color: #607d8b;
+    color: var(--color-texto-claro);
     margin-bottom: 10px;
 }
 
 .ticket-meta span {
     margin-right: 14px;
+}
+
+.badge-manual {
+    display: inline-block;
+    background: #dbeafe;
+    color: #1d4ed8;
+    border-radius: 999px;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-weight: 600;
+    vertical-align: middle;
+    margin-left: 8px;
+}
+
+/* Captura manual */
+.manual-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(180px, 1fr));
+    gap: 10px 18px;
+    margin-bottom: 18px;
+}
+
+.manual-grid > div {
+    min-width: 0;
+}
+
+.manual-grid label {
+    margin-top: 0;
+}
+
+.manual-grid input[type="date"],
+.manual-grid input[type="time"],
+.manual-grid textarea {
+    width: 100%;
+    padding: 9px 11px;
+    margin-top: 5px;
+    box-sizing: border-box;
+    border: 1px solid var(--color-borde-fuerte);
+    border-radius: var(--radio-sm);
+    font-size: 14px;
+    font-family: inherit;
+}
+
+.manual-grid textarea {
+    resize: vertical;
+}
+
+.manual-grid .manual-grid-ancho {
+    grid-column: 1 / -1;
+}
+
+.manual-titulo-renglones {
+    margin-top: 20px;
+}
+
+.tabla-manual-contenedor {
+    overflow-x: auto;
+    margin-top: 8px;
+}
+
+.tabla-manual {
+    width: 100%;
+    min-width: 980px;
+    border-collapse: collapse;
+}
+
+.tabla-manual th,
+.tabla-manual td {
+    padding: 5px;
+    border-bottom: 1px solid var(--color-borde);
+    font-size: 12px;
+    text-align: left;
+}
+
+.tabla-manual th {
+    background: var(--color-superficie-alt);
+    color: #475569;
+    white-space: nowrap;
+}
+
+.tabla-manual input,
+.tabla-manual select {
+    width: 100%;
+    min-width: 74px;
+    padding: 6px;
+    box-sizing: border-box;
+    border: 1px solid var(--color-borde-fuerte);
+    border-radius: 6px;
+    font-size: 12px;
+}
+
+.tabla-manual .inp-descripcion {
+    min-width: 180px;
+}
+
+.tabla-manual .manual-catalogo {
+    text-align: center;
+}
+
+.tabla-manual .btn-quitar {
+    padding: 2px 7px;
+    margin: 0;
+}
+
+.manual-total {
+    margin-left: auto;
+    align-self: center;
+    font-size: 14px;
+    color: #475569;
+}
+
+.manual-total strong {
+    color: var(--color-acento-oscuro);
+}
+
+@media (max-width: 900px) {
+    .manual-grid {
+        grid-template-columns: repeat(2, minmax(160px, 1fr));
+    }
+}
+
+@media (max-width: 620px) {
+    .manual-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 /* Tabla de revisión */
@@ -60,13 +186,13 @@ tr.validado td:first-child {
 }
 
 .avance-cabecera strong {
-    color: #2e7d32;
+    color: var(--color-acento-oscuro);
 }
 
 .barra {
     height: 8px;
-    background: #e0e4e7;
-    border-radius: 4px;
+    background: #e2e8f0;
+    border-radius: 999px;
     overflow: hidden;
     max-width: 320px;
 }
@@ -74,38 +200,39 @@ tr.validado td:first-child {
 .barra-relleno {
     height: 100%;
     width: 0;
-    background: #43a047;
+    background: var(--color-acento);
+    border-radius: 999px;
     transition: width 0.2s ease;
 }
 
 .resumen-detalle {
     margin: 8px 0 0;
     font-size: 13px;
-    color: #55606a;
+    color: #526071;
 }
 
 /* Conciliación */
 .conciliacion {
     margin-top: 10px;
-    padding: 8px 12px;
-    border-radius: 4px;
+    padding: 9px 12px;
+    border-radius: var(--radio-sm);
     font-size: 14px;
 }
 
 .conciliacion-cuadra {
-    background: #d4edda;
-    color: #155724;
+    background: #ecfdf5;
+    color: #065f46;
 }
 
 .conciliacion-ajuste,
 .conciliacion-sin_total {
-    background: #fff4e5;
-    color: #a04000;
+    background: #fffbeb;
+    color: #92400e;
 }
 
 .conciliacion-faltante {
-    background: #fdecea;
-    color: #b3261e;
+    background: #fef2f2;
+    color: #991b1b;
 }
 
 /* Cash back */
@@ -226,20 +353,20 @@ tfoot .fila-cash-back ul {
 
 .btn-toggle {
     background: none;
-    border: 1px solid #cfd8dc;
-    border-radius: 4px;
+    border: 1px solid var(--color-borde-fuerte);
+    border-radius: 6px;
     padding: 4px 10px;
     cursor: pointer;
     font-size: 14px;
-    color: #607d8b;
+    color: var(--color-texto-claro);
     transition: all 0.2s ease;
     min-width: 36px;
 }
 
 .btn-toggle:hover {
-    background: #f5f5f5;
-    border-color: #90a4ae;
-    color: #455a64;
+    background: var(--color-superficie-alt);
+    border-color: #94a3b8;
+    color: #334155;
 }
 
 .btn-toggle:focus {

@@ -344,6 +344,159 @@ CREATE INDEX IF NOT EXISTS idx_productos_descripcion_norm
     ON productos(descripcion_normalizada);
 """
 
+# Los tickets capturados a mano no vienen de un PDF ni del histórico. SQLite no
+# permite ampliar un CHECK con ALTER TABLE, así que hay que reconstruir `tickets`
+# y volver a crear las vistas que dependen de ella. La migración se ejecuta con
+# las llaves foráneas apagadas (ver `migrar`) para poder sustituir la tabla sin
+# tocar `detalle_tickets`.
+MIGRACION_8_ORIGEN_MANUAL = """
+DROP VIEW IF EXISTS v_detalle;
+DROP VIEW IF EXISTS v_gasto_mensual;
+DROP VIEW IF EXISTS v_gasto_detalle;
+DROP VIEW IF EXISTS v_descuentos;
+DROP VIEW IF EXISTS v_gasto_mensual_neto;
+DROP VIEW IF EXISTS v_conciliacion;
+
+CREATE TABLE tickets_v8 (
+    id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+
+    archivo             TEXT    NOT NULL,
+    ticket_legacy       TEXT,
+    sha256              TEXT    NOT NULL UNIQUE,
+
+    fecha               TEXT    NOT NULL,
+    hora                TEXT,
+
+    establecimiento      TEXT,
+    rfc_emisor          VARCHAR(13),
+    regimen_fiscal      TEXT,
+    folio               TEXT,
+
+    cliente             TEXT,
+    forma_pago          TEXT,
+    tarjeta             TEXT,
+
+    total               REAL    NOT NULL,
+    ahorro              REAL    NOT NULL DEFAULT 0,
+    descuento           REAL    NOT NULL DEFAULT 0,
+    subtotal            REAL,
+    iva                 REAL,
+    ieps                REAL,
+    articulos_declarados INTEGER,
+
+    estado              TEXT    NOT NULL DEFAULT 'confirmado'
+                            CHECK (estado IN ('confirmado', 'anulado')),
+    origen              TEXT    NOT NULL DEFAULT 'pdf'
+                            CHECK (origen IN ('pdf', 'historico', 'manual')),
+    notas               TEXT,
+    creado_en           TEXT    NOT NULL DEFAULT (datetime('now'))
+);
+
+INSERT INTO tickets_v8 (
+    id, archivo, ticket_legacy, sha256, fecha, hora, establecimiento,
+    rfc_emisor, regimen_fiscal, folio, cliente, forma_pago, tarjeta, total,
+    ahorro, descuento, subtotal, iva, ieps, articulos_declarados, estado,
+    origen, notas, creado_en
+)
+SELECT
+    id, archivo, ticket_legacy, sha256, fecha, hora, establecimiento,
+    rfc_emisor, regimen_fiscal, folio, cliente, forma_pago, tarjeta, total,
+    ahorro, descuento, subtotal, iva, ieps, articulos_declarados, estado,
+    origen, notas, creado_en
+FROM tickets;
+
+DROP TABLE tickets;
+ALTER TABLE tickets_v8 RENAME TO tickets;
+
+CREATE INDEX IF NOT EXISTS idx_tickets_fecha ON tickets(fecha);
+
+CREATE VIEW v_detalle AS
+SELECT  t.id          AS ticket_id,
+        t.archivo,
+        t.fecha,
+        strftime('%Y-%m', t.fecha) AS mes,
+        t.folio,
+        t.establecimiento,
+        c.nombre AS categoria,
+        s.nombre AS subcategoria,
+        d.linea,
+        d.descripcion,
+        d.sku,
+        d.cantidad,
+        d.precio_unit,
+        d.total,
+        d.tipo,
+        (d.producto_id IS NOT NULL) AS en_catalogo
+FROM    tickets t
+JOIN    detalle_tickets d ON d.ticket_id = t.id
+LEFT JOIN categorias    c ON c.id = d.categoria_id
+LEFT JOIN subcategorias s ON s.id = d.subcategoria_id
+WHERE   t.estado = 'confirmado';
+
+CREATE VIEW v_gasto_mensual AS
+SELECT  mes,
+        categoria,
+        ROUND(SUM(total), 2) AS importe,
+        COUNT(*)             AS renglones
+FROM    v_detalle
+WHERE   categoria IS NOT NULL AND tipo = 'producto'
+GROUP BY mes, categoria
+ORDER BY mes DESC, importe DESC;
+
+CREATE VIEW v_gasto_detalle AS
+SELECT  mes,
+        categoria,
+        subcategoria,
+        ROUND(SUM(total), 2) AS importe,
+        COUNT(*)             AS renglones
+FROM    v_detalle
+WHERE   subcategoria IS NOT NULL AND tipo = 'producto'
+GROUP BY mes, categoria, subcategoria
+ORDER BY mes DESC, importe DESC;
+
+CREATE VIEW v_descuentos AS
+SELECT  strftime('%Y-%m', t.fecha) AS mes,
+        d.descripcion,
+        ROUND(SUM(d.total), 2)       AS importe,
+        COUNT(*)                     AS renglones
+FROM    tickets t
+JOIN    detalle_tickets d ON d.ticket_id = t.id
+WHERE   t.estado = 'confirmado' AND d.tipo = 'descuento'
+GROUP BY mes, d.descripcion
+ORDER BY mes DESC;
+
+CREATE VIEW v_gasto_mensual_neto AS
+SELECT  m.mes,
+        ROUND(SUM(m.importe), 2)         AS bruto,
+        ROUND(COALESCE(d.total, 0), 2)   AS descuentos,
+        ROUND(SUM(m.importe) + COALESCE(d.total, 0), 2) AS neto
+FROM    (SELECT mes, SUM(total) AS importe
+         FROM    v_detalle
+         WHERE   tipo = 'producto'
+         GROUP BY mes) m
+LEFT JOIN (SELECT strftime('%Y-%m', t.fecha) AS mes,
+                  SUM(d.total)              AS total
+           FROM    tickets t
+           JOIN    detalle_tickets d ON d.ticket_id = t.id
+           WHERE   t.estado = 'confirmado' AND d.tipo = 'descuento'
+           GROUP BY 1) d ON d.mes = m.mes
+GROUP BY m.mes
+ORDER BY m.mes DESC;
+
+CREATE VIEW v_conciliacion AS
+SELECT  t.id,
+        t.archivo,
+        t.fecha,
+        t.total AS total_pagado,
+        ROUND(SUM(d.total), 2) AS total_renglones,
+        ROUND(t.total - SUM(d.total), 2) AS diferencia
+FROM    tickets t
+JOIN    detalle_tickets d ON d.ticket_id = t.id
+WHERE   t.estado = 'confirmado'
+GROUP BY t.id
+HAVING  ABS(t.total - SUM(d.total)) > 0.01;
+"""
+
 MIGRACIONES = [
     (1, MIGRACION_1_CATALOGO),
     (2, MIGRACION_2_GASTOS),
@@ -352,6 +505,7 @@ MIGRACIONES = [
     (5, MIGRACION_5_MENSUAL_NETO),
     (6, MIGRACION_6_LOG_CAMBIOS),
     (7, MIGRACION_7_NORMALIZAR_DESCRIPCION),
+    (8, MIGRACION_8_ORIGEN_MANUAL),
 ]
 
 VERSION_ESPERADA = MIGRACIONES[-1][0]
@@ -380,15 +534,29 @@ def migrar(conn: sqlite3.Connection) -> list[int]:
     for version, sql in MIGRACIONES:
         if version <= actual:
             continue
-        conn.execute("BEGIN")
+        # La migración 8 reemplaza `tickets`; con las llaves foráneas activas
+        # SQLite no permite soltar la tabla padre aunque se hayan conservado
+        # los renglones. El PRAGMA tiene que ejecutarse fuera de la transacción.
+        if version == 8:
+            conn.execute("PRAGMA foreign_keys = OFF")
         try:
+            conn.execute("BEGIN")
             for sentencia in _sentencias(sql):
                 conn.execute(sentencia)
+            if version == 8:
+                problemas = conn.execute("PRAGMA foreign_key_check").fetchall()
+                if problemas:
+                    raise sqlite3.IntegrityError(
+                        f"La migración {version} dejó llaves foráneas rotas: {problemas}"
+                    )
             conn.execute(f"PRAGMA user_version = {version}")
             conn.commit()
         except Exception:
             conn.rollback()
             raise
+        finally:
+            if version == 8:
+                conn.execute("PRAGMA foreign_keys = ON")
         aplicadas.append(version)
     return aplicadas
 

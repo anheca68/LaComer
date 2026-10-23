@@ -4,9 +4,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script>
+        // Aplica el estado guardado antes de pintar para evitar el parpadeo de
+        // la barra al recargar. En móvil el estado natural es solo-iconos; en
+        // escritorio el estado natural es expandido.
+        (function () {
+            try {
+                var movil = window.matchMedia("(max-width: 1024px)").matches;
+                if (movil) {
+                    if (localStorage.getItem("menuMovilExpandido") === "1") {
+                        document.documentElement.classList.add("menu-movil-expandido");
+                    }
+                } else if (localStorage.getItem("menuColapsado") === "1") {
+                    document.documentElement.classList.add("menu-colapsado");
+                }
+            } catch (e) { /* localStorage puede estar bloqueado */ }
+        })();
+    </script>
     <title>{% block titulo %}Gestor de Tickets{% endblock %}</title>
     <!-- CSS modular -->
-    <link rel="stylesheet" href="/static/css/base.css">
+    <link rel="stylesheet" href="/static/css/base.css?v=20261021-5">
     <link rel="stylesheet" href="/static/css/componentes.css">
     <link rel="stylesheet" href="/static/css/formulario.css">
     <link rel="stylesheet" href="/static/css/modal.css">
@@ -20,44 +37,74 @@
         {# La barra lateral se declara en el servidor: saber si la carga inicial
            sigue disponible evita ofrecer una opción que ya no hace nada. #}
         <aside class="lateral">
-            <div class="marca">Gestor de<br>Tickets</div>
+            <div class="lateral-cabecera">
+                <div class="marca">
+                    <span class="marca-larga">Gestor de<br>Tickets</span>
+                    <span class="marca-corta">GT</span>
+                </div>
+                <button type="button" class="menu-toggle" id="menu-toggle"
+                        aria-controls="menu-lateral" aria-expanded="true"
+                        aria-label="Contraer menú" title="Contraer menú">
+                    <span class="menu-toggle-icono" aria-hidden="true">&#10094;</span>
+                    <span class="menu-toggle-texto" aria-hidden="true">Ocultar</span>
+                </button>
+            </div>
             <div class="version">v2.0</div>
 
-            <nav>
+            <nav id="menu-lateral" aria-label="Navegación principal">
                 <div class="grupo">Resumen</div>
-                <a href="/" class="{% if seccion == 'panel' %}activo{% endif %}">
-                    <span class="icono">&#9632;</span> Panel
+                <a href="/" class="{% if seccion == 'panel' %}activo{% endif %}"
+                   data-tooltip="Panel" aria-label="Panel">
+                    <span class="icono">&#9632;</span><span class="texto">Panel</span>
                 </a>
-                <a href="/reportes" class="{% if seccion == 'reportes' %}activo{% endif %}">
-                    <span class="icono">&#9707;</span> Reportes
+                <a href="/reportes" class="{% if seccion == 'reportes' %}activo{% endif %}"
+                   data-tooltip="Reportes" aria-label="Reportes">
+                    <span class="icono">&#9707;</span><span class="texto">Reportes</span>
                 </a>
 
                 <div class="grupo">Consultas</div>
-                <a href="/articulo" class="{% if seccion == 'articulo' %}activo{% endif %}">
-                    <span class="icono">&#9776;</span> Por artículo
+                <a href="/articulo" class="{% if seccion == 'articulo' %}activo{% endif %}"
+                   data-tooltip="Por artículo" aria-label="Por artículo">
+                    <span class="icono">&#9776;</span><span class="texto">Por artículo</span>
                 </a>
-                <a href="/ticket" class="{% if seccion == 'ticket' %}activo{% endif %}">
-                    <span class="icono">&#9776;</span> Por ticket
+                <a href="/ticket" class="{% if seccion == 'ticket' %}activo{% endif %}"
+                   data-tooltip="Por ticket" aria-label="Por ticket">
+                    <span class="icono">&#128269;</span><span class="texto">Por ticket</span>
                 </a>
 
                 <div class="grupo">Operación</div>
-                <a href="/tickets" class="{% if seccion == 'tickets' %}activo{% endif %}">
-                    <span class="icono">&#9776;</span> Tickets
+                <div class="nav-submenu{% if seccion in ('tickets', 'ticket_manual') %} con-activo{% endif %}">
+                    <div class="nav-submenu-titulo{% if seccion in ('tickets', 'ticket_manual') %} activo{% endif %}">
+                        <span class="icono">&#9776;</span><span class="texto">Tickets</span>
+                    </div>
+                    <a href="/tickets" class="nav-hijo{% if seccion == 'tickets' %} activo{% endif %}"
+                       data-tooltip="Ticket PDF" aria-label="Ticket PDF">
+                        <span class="icono">&#128196;</span><span class="texto">Ticket PDF</span>
+                    </a>
+                    <a href="/tickets/manual" class="nav-hijo{% if seccion == 'ticket_manual' %} activo{% endif %}"
+                       data-tooltip="Captura manual" aria-label="Captura manual">
+                        <span class="icono">&#9998;</span><span class="texto">Captura manual</span>
+                    </a>
+                </div>
+                <a href="/catalogo" class="{% if seccion == 'catalogo' %}activo{% endif %}"
+                   data-tooltip="Catálogo" aria-label="Catálogo">
+                    <span class="icono">&#9635;</span><span class="texto">Catálogo</span>
                 </a>
-                <a href="/catalogo" class="{% if seccion == 'catalogo' %}activo{% endif %}">
-                    <span class="icono">&#9635;</span> Catálogo
+                <a href="/log" class="{% if seccion == 'log' %}activo{% endif %}"
+                   data-tooltip="Registro de cambios"
+                   aria-label="Registro de cambios">
+                    <span class="icono">&#8635;</span><span class="texto">Registro de cambios</span>
                 </a>
-                <a href="/log" class="{% if seccion == 'log' %}activo{% endif %}">
-                    <span class="icono">&#9776;</span> Registro de cambios
-                </a>
-                <a href="/admin/login" class="{% if seccion == 'admin' %}activo{% endif %}">
-                    <span class="icono">&#9881;</span> Admin
+                <a href="/admin/login" class="{% if seccion == 'admin' %}activo{% endif %}"
+                   data-tooltip="Admin" aria-label="Admin">
+                    <span class="icono">&#9881;</span><span class="texto">Admin</span>
                 </a>
 
                 {% if carga_inicial_abierta() %}
                 <div class="grupo">Mantenimiento</div>
-                <a href="/importar" class="{% if seccion == 'importar' %}activo{% endif %}">
-                    <span class="icono">&#8679;</span> Carga inicial
+                <a href="/importar" class="{% if seccion == 'importar' %}activo{% endif %}"
+                   data-tooltip="Carga inicial" aria-label="Carga inicial">
+                    <span class="icono">&#8679;</span><span class="texto">Carga inicial</span>
                 </a>
                 {% endif %}
             </nav>
@@ -107,6 +154,7 @@
     <!-- JS modular: utilidades base -->
     <script src="/static/js/utilidades.js"></script>
     <script src="/static/js/modal.js"></script>
+    <script src="/static/js/menu.js?v=20261021-4"></script>
     {% block scripts %}{% endblock %}
 
 </body>

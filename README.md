@@ -25,6 +25,21 @@ backend/descartados/
 backend/backups/
 ```
 
+### Captura manual de tickets
+
+Además de los PDFs, la pantalla **Tickets** permite capturar una compra a mano
+con el botón **Capturar ticket manualmente**. La captura pasa por la misma
+sección de revisión que los PDFs: se validan categorías y la suma de renglones
+antes de registrarla en la base.
+
+Los tickets manuales no generan PDF. Al confirmarlos se guardan con
+`origen='manual'`, se genera su CSV y quedan disponibles en el panel y en
+**Consulta por ticket**.
+
+La primera vez que se abre esta versión sobre una base existente se aplica la
+migración 8, que reconstruye la tabla `tickets` para permitir el origen
+`manual`. Conviene respaldar `despensa.db` antes de actualizar.
+
 ## Despliegue con Docker
 
 1. Crear el archivo de entorno:

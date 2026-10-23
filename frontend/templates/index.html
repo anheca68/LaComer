@@ -6,9 +6,14 @@
 
 {% block contenido %}
 
+<div class="page-tabs">
+    <a href="/tickets" class="activo">Ticket PDF</a>
+    <a href="/tickets/manual">Captura manual</a>
+</div>
+
 <!-- 1. Carga de tickets -->
 <div class="card">
-    <h2>1. Cargar Tickets</h2>
+    <h2>1. Cargar tickets PDF</h2>
     <form action="/cargar-archivos/" method="post" enctype="multipart/form-data">
         <label for="archivos">Selecciona uno o múltiples archivos PDF:</label>
         <input type="file" id="archivos" name="archivos" multiple accept=".pdf" required>
@@ -23,8 +28,13 @@
     {% if revision %}
     {% for ticket in revision %}
     {% set sin_catalogo = ticket.articulos | rejectattr('en_catalogo') | list %}
-    <div class="ticket-revision">
-        <h3>{{ ticket.archivo }}</h3>
+    <div class="ticket-revision" data-origen="{{ ticket.origen or 'pdf' }}">
+        <h3>
+            {{ ticket.archivo }}
+            {% if ticket.origen == 'manual' %}
+            <span class="badge-manual">Captura manual</span>
+            {% endif %}
+        </h3>
         <div class="ticket-meta">
             {% if ticket.cliente %}<span>Cliente: {{ ticket.cliente }}</span>{% endif %}
             <span>Fecha: {{ ticket.fecha_compra or '—' }} {{ ticket.hora_compra }}</span>
@@ -172,7 +182,9 @@
                 <button type="submit" class="btn-guardar"
                     formaction="/guardar-cambios/">Guardar cambios</button>
                 <button type="submit" class="btn-process"
-                    {% if conc.bloquea %}disabled title="{{ conc.mensaje }}"{% endif %}>Confirmar y procesar</button>
+                    {% if conc.bloquea %}disabled title="{{ conc.mensaje }}"{% endif %}>
+                    {{ 'Confirmar y registrar' if ticket.origen == 'manual' else 'Confirmar y procesar' }}
+                </button>
                 <a class="boton-secundario" href="/descargar-csv/{{ ticket.ticket_id }}">Descargar CSV</a>
                 <a class="boton-secundario" href="/reporte/{{ ticket.ticket_id }}"
                     target="_blank" rel="noopener">Informe PDF</a>
@@ -181,7 +193,12 @@
                 «Guardar cambios» aplica al catálogo solo los renglones ya completos y
                 deja el ticket pendiente con el resto: puedes recargar, salir y seguir
                 otro día sin perder el avance. «Confirmar y procesar» exige el ticket
-                completo y además genera el CSV y archiva el PDF.
+                completo y además genera el CSV
+                {% if ticket.origen == 'manual' %}
+                y registra la captura manual.
+                {% else %}
+                y archiva el PDF.
+                {% endif %}
                 Las descargas usan lo último guardado.
             </p>
         </form>
@@ -247,6 +264,10 @@
         {% else %}
         <p>Aún no se ha procesado ningún ticket.</p>
         {% endif %}
+        <p class="muted">
+            Las capturas manuales no generan PDF; una vez confirmadas puedes
+            consultarlas desde <a href="/ticket">Consulta por ticket</a>.
+        </p>
     </div>
 </div>
 

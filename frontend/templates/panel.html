@@ -108,7 +108,22 @@
     <div class="kpi">
         <div class="etiqueta">Ticket promedio</div>
         <div class="valor">$ {{ "{:,.2f}".format(ind.ticket_promedio) }}</div>
-        <div class="nota">{{ ind.tickets }} tickets en total</div>
+        <div class="nota">
+            {{ ind.tickets }} tickets
+            {% if periodo_activo != 'todo' %}en el período{% else %}en total{% endif %}
+        </div>
+    </div>
+
+    <div class="kpi">
+        <div class="etiqueta">Tickets registrados</div>
+        <div class="valor">{{ ind.tickets_total }}</div>
+        <div class="nota">
+            {% if periodo_activo == 'todo' %}
+            en toda la base
+            {% else %}
+            en {{ ind.periodo.etiqueta|lower }}
+            {% endif %}
+        </div>
     </div>
 
     <div class="kpi {{ 'alerta' if ind.ahorro > 0 else '' }}">

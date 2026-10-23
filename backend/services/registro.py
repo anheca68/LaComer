@@ -11,6 +11,7 @@ leen uno por uno para comprobarlo, pero se guardan como un solo renglón
 """
 
 import hashlib
+import json
 import sqlite3
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -143,6 +144,19 @@ def _nota(conciliacion: Dict[str, Any]) -> Optional[str]:
     return " ".join(partes) or None
 
 
+def _notas_ticket(
+    ticket: Dict[str, Any], conciliacion: Dict[str, Any]
+) -> Optional[str]:
+    """Une la nota capturada por el usuario con la explicación de la conciliación."""
+    partes = []
+    if ticket.get("notas"):
+        partes.append(str(ticket["notas"]).strip())
+    nota = _nota(conciliacion)
+    if nota:
+        partes.append(nota)
+    return " ".join(p for p in partes if p) or None
+
+
 # ═══════════════════════════════════════════════════════════════════════════
 # Registro
 # ═══════════════════════════════════════════════════════════════════════════
@@ -151,8 +165,41 @@ def sha256_de(ruta: Path) -> str:
     return hashlib.sha256(ruta.read_bytes()).hexdigest()
 
 
+def sha256_de_ticket(ticket: Dict[str, Any]) -> str:
+    """Huella estable de un ticket capturado a mano.
+
+    No se calcula sobre el PDF porque no existe. Se usan los datos que
+    identifican la compra (fecha, folio, total y renglones), sin categorías ni
+    campos de revisión, para que corregir una categoría no cambie la identidad
+    del ticket y para que volver a capturarlo se detecte como duplicado.
+    """
+    renglones = []
+    for articulo in ticket.get("articulos", []):
+        renglones.append(
+            {
+                "articulo": articulo.get("articulo"),
+                "sku": articulo.get("sku"),
+                "cantidad": articulo.get("cantidad"),
+                "precio_regular": articulo.get("precio_regular"),
+                "precio_promocion": articulo.get("precio_promocion"),
+                "total": articulo.get("total"),
+            }
+        )
+    payload = {
+        "fecha_iso": ticket.get("fecha_iso"),
+        "hora_compra": ticket.get("hora_compra"),
+        "establecimiento": ticket.get("establecimiento"),
+        "folio": ticket.get("folio"),
+        "total_ticket": ticket.get("total_ticket"),
+        "articulos": renglones,
+    }
+    return hashlib.sha256(
+        json.dumps(payload, ensure_ascii=False, sort_keys=True, default=str).encode("utf-8")
+    ).hexdigest()
+
+
 def ya_registrado(sha256: str) -> Optional[Dict[str, Any]]:
-    """El ticket ya guardado con ese mismo PDF, si existe."""
+    """El ticket ya guardado con ese mismo contenido, si existe."""
     conn = get_db_connection()
     try:
         fila = conn.execute(
@@ -215,7 +262,7 @@ def _validar_no_duplicado(conn: sqlite3.Connection, ticket: Dict[str, Any], sha2
     ).fetchone()
     if fila:
         raise TicketDuplicado(
-            f"Este PDF ya está registrado como ticket #{fila['id']} ({fila['archivo']})."
+            f"Este ticket ya está registrado como #{fila['id']} ({fila['archivo']})."
         )
 
     folio = (ticket.get("folio") or "").strip()
@@ -237,6 +284,9 @@ def _insertar_ticket(
     sha256: str,
     conciliacion: Dict[str, Any],
 ) -> int:
+    forma_pago = ticket.get("forma_pago") or (
+        "TARJETA" if ticket.get("tarjeta") else None
+    )
     cursor = conn.execute(
         """
         INSERT INTO tickets (archivo, sha256, fecha, hora, establecimiento,
@@ -244,7 +294,7 @@ def _insertar_ticket(
                              forma_pago, tarjeta, total, ahorro, descuento,
                              subtotal, iva, ieps, articulos_declarados,
                              origen, notas)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pdf', ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             ticket["archivo"], sha256, ticket["fecha_iso"],
@@ -254,7 +304,7 @@ def _insertar_ticket(
             ticket.get("regimen_fiscal") or None,
             ticket.get("folio") or None,
             ticket.get("cliente") or None,
-            "TARJETA" if ticket.get("tarjeta") else None,
+            forma_pago,
             ticket.get("tarjeta") or None,
             conciliacion["total_a_registrar"],
             ticket.get("ahorro") or 0.0,
@@ -263,7 +313,8 @@ def _insertar_ticket(
             ticket.get("iva"),
             ticket.get("ieps"),
             ticket.get("articulos_declarados"),
-            _nota(conciliacion),
+            ticket.get("origen") or "pdf",
+            _notas_ticket(ticket, conciliacion),
         ),
     )
     return cursor.lastrowid

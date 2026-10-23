@@ -1,4 +1,6 @@
 import json
+import secrets
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -17,8 +19,10 @@ __all__ = [
     "SIN_SUBCATEGORIA",
     "cargar_staging",
     "crear_staging_desde_ticket",
+    "crear_staging_manual",
     "eliminar_staging",
     "guardar_staging",
+    "identidad_manual",
     "listar_staging",
 ]
 
@@ -143,5 +147,64 @@ def crear_staging_desde_ticket(
     ticket = enriquecer_por_nombre(datos_ticket)
     ticket["ticket_id"] = construir_ticket_id(archivo_nombre)
     ticket["archivo"] = archivo_nombre
+    guardar_staging(ticket, ticket["ticket_id"])
+    return ticket
+
+
+def identidad_manual() -> tuple[str, str]:
+    """Id interno y nombre visible de un ticket que no tiene archivo PDF."""
+    ahora = datetime.now()
+    sufijo = secrets.token_hex(3)
+    ticket_id = f"manual_{ahora:%Y%m%d_%H%M%S}_{sufijo}"
+    archivo = f"MANUAL-{ahora:%Y%m%d-%H%M%S}-{sufijo.upper()}"
+    return ticket_id, archivo
+
+
+def crear_staging_manual(
+    datos_ticket: Dict[str, Any],
+    ticket_id: Optional[str] = None,
+    archivo: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Crea el staging de una captura manual, sin PDF.
+
+    Se cruza contra el catálogo como cualquier ticket, pero se conservan las
+    categorías que el usuario haya elegido en el formulario. Si no eligió
+    ninguna, quedan como ``sin categoria`` y la pantalla de revisión las exige
+    antes de confirmar.
+    """
+    if not datos_ticket.get("articulos"):
+        raise ValueError("La captura manual necesita al menos un renglón.")
+
+    elegidas = [
+        (
+            (articulo.get("categoria") or "").strip(),
+            (articulo.get("subcategoria") or "").strip(),
+            articulo.get("registrar_producto", True),
+        )
+        for articulo in datos_ticket["articulos"]
+    ]
+
+    ticket = enriquecer_por_nombre(datos_ticket)
+    for articulo, (categoria, subcategoria, registrar) in zip(
+        ticket["articulos"], elegidas
+    ):
+        if categoria and categoria != SIN_CATEGORIA:
+            articulo["categoria"] = categoria
+        if subcategoria and subcategoria != SIN_SUBCATEGORIA:
+            articulo["subcategoria"] = subcategoria
+        articulo["match"] = bool(
+            articulo["categoria"] not in ("", SIN_CATEGORIA)
+            and articulo["subcategoria"] not in ("", SIN_SUBCATEGORIA)
+        )
+        articulo["registrar_producto"] = bool(registrar)
+
+    if not ticket_id or not archivo:
+        ticket_id, archivo = identidad_manual()
+    ticket["ticket_id"] = ticket_id
+    ticket["archivo"] = archivo
+    ticket["origen"] = "manual"
+    ticket["descuentos"] = list(datos_ticket.get("descuentos") or [])
+    ticket["ahorro"] = datos_ticket.get("ahorro") or 0.0
+    ticket["procesado"] = datetime.now().strftime("%d/%m/%Y %H:%M")
     guardar_staging(ticket, ticket["ticket_id"])
     return ticket

@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+
+{% block titulo %}Captura manual de ticket{% endblock %}
+
+{% block extra_styles %}
+<link rel="stylesheet" href="/static/css/tickets.css">
+{% endblock %}
+
+{% block contenido %}
+
+<div class="page-tabs">
+    <a href="/tickets">Ticket PDF</a>
+    <a href="/tickets/manual" class="activo">Captura manual</a>
+</div>
+
+<div class="card">
+    <h2>Captura manual de ticket</h2>
+    <p class="muted">
+        Registra una compra que no tienes en PDF. Al guardar, el ticket pasa a
+        la sección de revisión como cualquier otro: todavía puedes corregir
+        categorías antes de confirmarlo.
+    </p>
+
+    {% if error %}
+    <div class="alert-error">{{ error }}</div>
+    {% endif %}
+
+    <form id="form-manual" action="/tickets/manual" method="post">
+        <h3>Datos del ticket</h3>
+        <div class="manual-grid">
+            <div>
+                <label for="manual-fecha">Fecha *</label>
+                <input type="date" id="manual-fecha" name="fecha"
+                       value="{{ form.fecha }}" required>
+            </div>
+            <div>
+                <label for="manual-hora">Hora</label>
+                <input type="time" id="manual-hora" name="hora"
+                       value="{{ form.hora }}">
+            </div>
+            <div>
+                <label for="manual-establecimiento">Establecimiento</label>
+                <input type="text" id="manual-establecimiento"
+                       name="establecimiento" value="{{ form.establecimiento }}"
+                       placeholder="Ej. La Comer">
+            </div>
+            <div>
+                <label for="manual-folio">Folio</label>
+                <input type="text" id="manual-folio" name="folio"
+                       value="{{ form.folio }}" placeholder="Opcional">
+            </div>
+            <div>
+                <label for="manual-forma-pago">Forma de pago</label>
+                <input type="text" id="manual-forma-pago" name="forma_pago"
+                       value="{{ form.forma_pago }}" placeholder="TARJETA, EFECTIVO...">
+            </div>
+            <div>
+                <label for="manual-tarjeta">Últimos 4 de la tarjeta</label>
+                <input type="text" id="manual-tarjeta" name="tarjeta"
+                       value="{{ form.tarjeta }}" maxlength="4" inputmode="numeric"
+                       placeholder="Opcional">
+            </div>
+            <div>
+                <label for="manual-rfc">RFC emisor</label>
+                <input type="text" id="manual-rfc" name="rfc_emisor"
+                       value="{{ form.rfc_emisor }}" placeholder="Opcional">
+            </div>
+            <div>
+                <label for="manual-cliente">Cliente</label>
+                <input type="text" id="manual-cliente" name="cliente"
+                       value="{{ form.cliente }}" placeholder="Opcional">
+            </div>
+            <div>
+                <label for="manual-total">Total pagado</label>
+                <input type="number" id="manual-total" name="total_ticket"
+                       value="{{ form.total_ticket }}" step="0.01" min="0"
+                       placeholder="Si se deja vacío, se usa la suma">
+            </div>
+            <div class="manual-grid-ancho">
+                <label for="manual-notas">Notas</label>
+                <textarea id="manual-notas" name="notas" rows="2"
+                          placeholder="Opcional">{{ form.notas }}</textarea>
+            </div>
+        </div>
+
+        <h3 class="manual-titulo-renglones">Renglones</h3>
+        <div class="tabla-manual-contenedor">
+            <table class="tabla-manual">
+                <thead>
+                    <tr>
+                        <th>Descripción *</th>
+                        <th>SKU</th>
+                        <th>Cant. *</th>
+                        <th>P. regular</th>
+                        <th>P. promo</th>
+                        <th>Total</th>
+                        <th>Categoría</th>
+                        <th>Subcategoría</th>
+                        <th>Catálogo</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="filas-manual"></tbody>
+            </table>
+        </div>
+
+        <div class="acciones">
+            <button type="button" id="btn-agregar-fila" class="boton-secundario">
+                + Agregar renglón
+            </button>
+            <span class="manual-total">
+                Suma de renglones: <strong id="total-renglones">$0.00</strong>
+            </span>
+        </div>
+
+        <input type="hidden" name="renglones" id="renglones-manual" value="[]">
+
+        <div class="acciones acciones-confirmar">
+            <button type="submit" class="btn-guardar">Guardar para revisión</button>
+            <a class="boton-secundario" href="/tickets">Cancelar</a>
+        </div>
+        <p class="pie-acciones">
+            El total pagado debe coincidir con la suma de los renglones. Si no
+            coincide, corrige los importes antes de guardar. Después podrás
+            completar categorías y confirmar el ticket en la pantalla de revisión.
+        </p>
+    </form>
+</div>
+
+<template id="fila-manual-template">
+    <tr class="fila-manual" data-match="0">
+        <td><input type="text" class="inp-descripcion" placeholder="Artículo"></td>
+        <td><input type="text" class="inp-sku" placeholder="Opcional"></td>
+        <td><input type="number" class="inp-cantidad" value="1" min="0.001" step="0.001"></td>
+        <td><input type="number" class="inp-regular" step="0.01" min="0"></td>
+        <td><input type="number" class="inp-promo" step="0.01" min="0"></td>
+        <td><input type="number" class="inp-total" step="0.01" min="0"></td>
+        <td><select class="sel-categoria"></select></td>
+        <td><select class="sel-subcategoria"></select></td>
+        <td class="manual-catalogo"><input type="checkbox" class="chk-producto" checked></td>
+        <td><button type="button" class="btn-quitar" title="Quitar renglón">×</button></td>
+    </tr>
+</template>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const ARBOL = {{ arbol_categorias | tojson }};
+    const SIN_CATEGORIA = {{ sin_categoria | tojson }};
+    const SIN_SUBCATEGORIA = {{ sin_subcategoria | tojson }};
+    const FILAS_INICIALES = {{ filas | tojson }};
+</script>
+<script src="/static/js/ticket_manual.js"></script>
+{% endblock %}

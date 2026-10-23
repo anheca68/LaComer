@@ -423,6 +423,13 @@ def indicadores(periodo: Optional[str] = None) -> Dict[str, Any]:
         gasto_neto = round(total_bruto + ahorro, 2)
 
         tickets = uno("SELECT COUNT(DISTINCT ticket_id) FROM v_detalle WHERE " + alcance)
+        # Sale de `tickets` para incluir capturas manuales y tickets sin
+        # renglones de producto. Se filtra por la misma fecha que el resto del
+        # panel, de modo que la tarjeta cambia al elegir un mes o un año.
+        tickets_total = uno_fecha(
+            "SELECT COUNT(*) FROM tickets WHERE estado = 'confirmado' "
+            "AND " + solo_fecha
+        )
 
         # Comparación contra el corte inmediato anterior dentro de la serie.
         # Solo tiene sentido con granularidad mensual: en un mes suelto la serie
@@ -472,6 +479,7 @@ def indicadores(periodo: Optional[str] = None) -> Dict[str, Any]:
             "gasto_bruto": total_bruto,
             "ahorro": ahorro,
             "tickets": tickets or 0,
+            "tickets_total": tickets_total or 0,
             "renglones": uno("SELECT COUNT(*) FROM v_detalle WHERE " + alcance) or 0,
             "categorias": uno(
                 "SELECT COUNT(DISTINCT categoria) FROM v_detalle WHERE " + alcance

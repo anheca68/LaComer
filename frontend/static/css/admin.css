@@ -11,19 +11,19 @@
 }
 
 .login-box {
-    background: #fff;
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
+    background: var(--color-superficie);
+    border: 1px solid var(--color-borde);
+    border-radius: var(--radio-sm);
     padding: 30px;
     width: 100%;
     max-width: 400px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    box-shadow: var(--sombra-suave);
 }
 
 .login-box h1 {
     margin: 0 0 8px 0;
     font-size: 22px;
-    color: #333;
+    color: var(--color-texto);
 }
 
 .form-login {
@@ -38,31 +38,31 @@
     display: block;
     margin-bottom: 6px;
     font-weight: 500;
-    color: #555;
+    color: #334155;
 }
 
 .input-admin {
     width: 100%;
     padding: 10px 12px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
+    border: 1px solid var(--color-borde-fuerte);
+    border-radius: 6px;
     font-size: 14px;
     box-sizing: border-box;
 }
 
 .input-admin:focus {
     outline: none;
-    border-color: var(--color-primario, #1976d2);
-    box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
+    border-color: var(--color-secundario);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
 }
 
 .btn-admin {
     display: inline-block;
     padding: 10px 20px;
-    background: var(--color-primario, #1976d2);
+    background: var(--color-secundario);
     color: #fff;
     border: none;
-    border-radius: 4px;
+    border-radius: 6px;
     font-size: 14px;
     font-weight: 500;
     cursor: pointer;
@@ -71,7 +71,7 @@
 }
 
 .btn-admin:hover {
-    background: #1565c0;
+    background: var(--color-secundario-oscuro);
 }
 
 .btn-block {
@@ -79,31 +79,31 @@
 }
 
 .btn-secundario {
-    background: #757575;
+    background: #64748b;
 }
 
 .btn-secundario:hover {
-    background: #616161;
+    background: #475569;
 }
 
 .btn-peligro {
-    background: #d32f2f;
+    background: var(--color-peligro);
 }
 
 .btn-peligro:hover {
-    background: #c62828;
+    background: #b91c1c;
 }
 
 .link-volver {
     display: inline-block;
     margin-top: 16px;
-    color: #666;
+    color: var(--color-texto-claro);
     font-size: 13px;
     text-decoration: none;
 }
 
 .link-volver:hover {
-    color: var(--color-primario, #1976d2);
+    color: var(--color-secundario);
 }
 
 /* Header admin */
@@ -113,7 +113,7 @@
     align-items: center;
     margin-bottom: 20px;
     padding-bottom: 15px;
-    border-bottom: 1px solid #e0e0e0;
+    border-bottom: 1px solid var(--color-borde);
 }
 
 .admin-header h1 {
@@ -129,8 +129,8 @@
 }
 
 .stat-box {
-    background: #f5f5f5;
-    border-radius: 8px;
+    background: var(--color-superficie-alt);
+    border-radius: var(--radio-sm);
     padding: 15px 25px;
     text-align: center;
 }
@@ -139,18 +139,18 @@
     display: block;
     font-size: 28px;
     font-weight: bold;
-    color: var(--color-primario, #1976d2);
+    color: var(--color-secundario);
 }
 
 .stat-label {
     font-size: 12px;
-    color: #666;
+    color: var(--color-texto-claro);
     text-transform: uppercase;
 }
 
 /* Grupos de duplicados */
 .grupo-duplicados {
-    border: 1px solid #e0e0e0;
+    border: 1px solid var(--color-borde);
     border-radius: 6px;
     padding: 15px;
     margin-bottom: 15px;
@@ -159,7 +159,7 @@
 .grupo-duplicados h3 {
     margin: 0 0 5px 0;
     font-size: 16px;
-    color: #333;
+    color: var(--color-texto);
 }
 
 .form-fusion {

@@ -10,7 +10,7 @@
 }
 
 .descripcion {
-    color: #666;
+    color: var(--color-texto-claro);
     margin-bottom: 1.5rem;
 }
 
@@ -31,15 +31,16 @@
 .input-busqueda {
     flex: 1;
     padding: 0.75rem 1rem;
-    border: 1px solid #ddd;
-    border-radius: 6px;
+    border: 1px solid var(--color-borde-fuerte);
+    border-radius: var(--radio-sm);
     font-size: 1rem;
+    background: var(--color-superficie);
 }
 
 .input-busqueda:focus {
     outline: none;
-    border-color: #3498db;
-    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+    border-color: var(--color-secundario);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
 }
 
 /* Resultados de búsqueda */
@@ -56,16 +57,17 @@
 .item-resultado {
     display: block;
     padding: 1rem;
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
+    border: 1px solid var(--color-borde);
+    border-radius: var(--radio-sm);
     text-decoration: none;
     color: inherit;
-    transition: all 0.2s;
+    transition: border-color var(--transicion), background var(--transicion);
 }
 
 .item-resultado:hover {
-    border-color: #3498db;
-    background: #f8f9fa;
+    border-color: var(--color-secundario);
+    background: var(--color-superficie-alt);
+    text-decoration: none;
 }
 
 .item-resultado .nombre {
@@ -83,11 +85,12 @@
 /* Badges */
 .badge {
     display: inline-block;
-    padding: 0.25rem 0.6rem;
-    background: #e8e8e8;
-    border-radius: 4px;
+    padding: 0.25rem 0.65rem;
+    background: #eef2f7;
+    border-radius: 999px;
     font-size: 0.8rem;
-    color: #555;
+    color: #475569;
+    font-weight: 600;
 }
 
 /* Detalle de artículo */
@@ -140,30 +143,30 @@
 .tabla-datos td {
     padding: 0.75rem;
     text-align: left;
-    border-bottom: 1px solid #e0e0e0;
+    border-bottom: 1px solid var(--color-borde);
 }
 
 .tabla-datos th {
-    background: #f8f9fa;
-    font-weight: 600;
-    color: #555;
+    background: var(--color-superficie-alt);
+    font-weight: 700;
+    color: #475569;
 }
 
 .tabla-datos tbody tr:hover {
-    background: #f8f9fa;
+    background: var(--color-superficie-alt);
 }
 
 .tabla-datos tr.descuento {
-    background: #fff3cd;
+    background: #fffbeb;
 }
 
 .tabla-datos .ahorro {
-    color: #27ae60;
+    color: var(--color-acento);
     font-weight: 600;
 }
 
 .tabla-datos .categoria {
-    color: #888;
+    color: var(--color-texto-claro);
 }
 
 /* Totales */
@@ -184,22 +187,22 @@
 }
 
 .tarjeta-total {
-    background: #f8f9fa;
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
+    background: var(--color-superficie-alt);
+    border: 1px solid var(--color-borde);
+    border-radius: var(--radio-sm);
     padding: 1rem;
     text-align: center;
 }
 
 .tarjeta-total.destacada {
-    background: #e8f4fd;
-    border-color: #3498db;
+    background: #eff6ff;
+    border-color: #bfdbfe;
 }
 
 .tarjeta-total .etiqueta {
     display: block;
     font-size: 0.85rem;
-    color: #666;
+    color: var(--color-texto-claro);
     margin-bottom: 0.25rem;
 }
 
@@ -207,11 +210,11 @@
     display: block;
     font-size: 1.5rem;
     font-weight: 700;
-    color: #2c3e50;
+    color: var(--color-primario);
 }
 
 .tarjeta-total .valor.ahorro {
-    color: #27ae60;
+    color: var(--color-acento);
 }
 
 /* Info del ticket */
@@ -226,16 +229,16 @@
 }
 
 .item-info {
-    background: #f8f9fa;
-    border: 1px solid #e0e0e0;
-    border-radius: 6px;
+    background: var(--color-superficie-alt);
+    border: 1px solid var(--color-borde);
+    border-radius: var(--radio-sm);
     padding: 0.75rem;
 }
 
 .item-info .etiqueta {
     display: block;
     font-size: 0.8rem;
-    color: #666;
+    color: var(--color-texto-claro);
     margin-bottom: 0.25rem;
 }
 
@@ -247,7 +250,7 @@
 .tickets-recientes {
     margin-top: 2rem;
     padding-top: 1.5rem;
-    border-top: 1px solid #e0e0e0;
+    border-top: 1px solid var(--color-borde);
 }
 
 .tickets-recientes h3 {
@@ -265,30 +268,31 @@
     align-items: center;
     gap: 1rem;
     padding: 0.75rem 1rem;
-    border: 1px solid #e0e0e0;
-    border-radius: 6px;
+    border: 1px solid var(--color-borde);
+    border-radius: var(--radio-sm);
     text-decoration: none;
     color: inherit;
-    transition: all 0.2s;
+    transition: border-color var(--transicion), background var(--transicion);
 }
 
 .item-ticket-mini:hover {
-    border-color: #3498db;
-    background: #f8f9fa;
+    border-color: var(--color-secundario);
+    background: var(--color-superficie-alt);
+    text-decoration: none;
 }
 
 .item-ticket-mini .id {
     font-weight: 600;
-    color: #3498db;
+    color: var(--color-secundario);
 }
 
 .item-ticket-mini .fecha {
-    color: #666;
+    color: var(--color-texto-claro);
 }
 
 .item-ticket-mini .folio {
     flex: 1;
-    color: #666;
+    color: var(--color-texto-claro);
 }
 
 .item-ticket-mini .total {
@@ -298,26 +302,26 @@
 /* Botones */
 .btn-primario {
     padding: 0.75rem 1.5rem;
-    background: #3498db;
+    background: var(--color-secundario);
     color: white;
     border: none;
-    border-radius: 6px;
+    border-radius: var(--radio-sm);
     font-size: 1rem;
     cursor: pointer;
     transition: background 0.2s;
 }
 
 .btn-primario:hover {
-    background: #2980b9;
+    background: var(--color-secundario-oscuro);
 }
 
 .btn-secundario {
     display: inline-block;
     padding: 0.75rem 1.5rem;
-    background: #95a5a6;
+    background: #64748b;
     color: white;
     border: none;
-    border-radius: 6px;
+    border-radius: var(--radio-sm);
     font-size: 1rem;
     text-decoration: none;
     cursor: pointer;
@@ -325,5 +329,5 @@
 }
 
 .btn-secundario:hover {
-    background: #7f8c8d;
+    background: #475569;
 }

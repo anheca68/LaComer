@@ -202,7 +202,11 @@ function inicializarTickets() {
     // Formulario de descartar
     document.querySelectorAll(".form-descartar").forEach(form => {
         form.addEventListener("submit", evento => {
-            if (!confirmar("¿Descartar este ticket? El PDF se moverá a descartados/ y NO se generará CSV.")) {
+            const revision = form.closest(".ticket-revision");
+            const mensaje = revision && revision.dataset.origen === "manual"
+                ? "¿Descartar esta captura manual? No se registrará en la base ni se generará CSV."
+                : "¿Descartar este ticket? El PDF se moverá a descartados/ y NO se generará CSV.";
+            if (!confirmar(mensaje)) {
                 evento.preventDefault();
             }
         });

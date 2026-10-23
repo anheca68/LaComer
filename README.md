@@ -35,8 +35,8 @@ persona tiene su usuario y contraseña, y puede tener uno o varios roles:
 | Rol | Puede |
 |-----|-------|
 | `admin` | Lo mismo que `capturista` y `consulta`, más gestionar usuarios (**Administración → Usuarios**), corregir o anular tickets registrados, normalizar productos y la carga inicial |
-| `capturista` | Subir tickets PDF, capturar tickets a mano y clasificar productos del catálogo |
-| `consulta` | Ver panel, reportes, consultas, catálogo y registro de cambios |
+| `capturista` | Subir tickets PDF, capturar tickets a mano y, en **Registros**, ver y clasificar el catálogo y el registro de cambios |
+| `consulta` | Ver panel, reportes y consultas |
 
 - **Primer administrador:** si la base no tiene usuarios, al arrancar se crea
   uno con `ADMIN_USUARIO` (por defecto `admin`) y `ADMIN_PASSWORD`. Con

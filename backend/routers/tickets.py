@@ -677,7 +677,7 @@ async def api_categorias():
         return {"error": str(e)}
 
 
-@router.get("/log")
+@router.get("/log", dependencies=[Depends(captura)])
 async def ver_log(request: Request, tabla: str = None, limite: int = 100):
     """Vista de auditoría: muestra los cambios registrados en la base de datos."""
     cambios = obtener_cambios(tabla=tabla, limite=limite)

@@ -30,7 +30,7 @@ def _redir(mensaje: str = None, aviso: str = None, error: str = None) -> Redirec
     return RedirectResponse(url=f"/catalogo?{sufijo}" if sufijo else "/catalogo", status_code=303)
 
 
-@router.get("/catalogo", response_class=HTMLResponse)
+@router.get("/catalogo", response_class=HTMLResponse, dependencies=[Depends(captura)])
 async def editor_catalogo(
     request: Request,
     buscar: str = "",

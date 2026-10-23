@@ -175,6 +175,8 @@ RUTAS_CAPTURA = [
     ("post", "/confirmar-ticket/"),
     ("post", "/descartar-ticket/"),
     ("post", "/catalogo/reclasificar"),
+    ("get", "/catalogo"),
+    ("get", "/log"),
 ]
 
 RUTAS_ADMIN = [
@@ -201,7 +203,7 @@ def test_capturista_no_administra(bd_temporal, iniciar_sesion, metodo, ruta):
     assert getattr(cliente, metodo)(ruta).status_code == 403
 
 
-@pytest.mark.parametrize("ruta", ["/", "/reportes", "/ticket", "/articulo", "/catalogo", "/log"])
+@pytest.mark.parametrize("ruta", ["/", "/reportes", "/ticket", "/articulo"])
 def test_consulta_ve_pantallas_de_lectura(bd_temporal, iniciar_sesion, ruta):
     assert iniciar_sesion("consulta").get(ruta).status_code == 200
 
@@ -214,10 +216,13 @@ def test_roles_de_captura_abren_la_captura(bd_temporal, iniciar_sesion, roles):
 def test_menu_segun_rol(bd_temporal, iniciar_sesion):
     consulta = iniciar_sesion("consulta").get("/").text
     assert "/tickets/manual" not in consulta and "/admin/usuarios" not in consulta
+    assert ">Registros<" not in consulta and 'href="/catalogo"' not in consulta
     capturista = iniciar_sesion("capturista").get("/").text
     assert "/tickets/manual" in capturista and "/admin/usuarios" not in capturista
+    assert ">Registros<" in capturista and 'href="/log"' in capturista
     admin = iniciar_sesion("admin").get("/").text
     assert "/tickets/manual" in admin and "/admin/usuarios" in admin
+    assert ">Registros<" in admin and 'href="/catalogo"' in admin
 
 
 # ---------------------------------------------------------------------------

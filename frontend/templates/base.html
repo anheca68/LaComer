@@ -91,6 +91,9 @@
                     </a>
                 </div>
                 {% endif %}
+
+                {% if usuario.puede_capturar %}
+                <div class="grupo">Registros</div>
                 <a href="/catalogo" class="{% if seccion == 'catalogo' %}activo{% endif %}"
                    data-tooltip="Catálogo" aria-label="Catálogo">
                     <span class="icono">&#9635;</span><span class="texto">Catálogo</span>
@@ -100,6 +103,7 @@
                    aria-label="Registro de cambios">
                     <span class="icono">&#8635;</span><span class="texto">Registro de cambios</span>
                 </a>
+                {% endif %}
 
                 {% if usuario.es_admin %}
                 <div class="grupo">Administración</div>

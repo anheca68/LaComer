@@ -6,9 +6,10 @@ from pathlib import Path
 from typing import List
 from urllib.parse import quote
 
-from fastapi import APIRouter, File, Form, Request, UploadFile
+from fastapi import APIRouter, Depends, File, Form, Request, UploadFile
 from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse
 
+from backend.auth import captura
 from backend.config import (
     DESCARTADOS_DIR,
     PROCESADOS_DIR,
@@ -174,7 +175,7 @@ def _fecha_manual_visible(fecha) -> str:
     return f"{fecha.day:02d}/{MESES_ABREV[fecha.month - 1]}/{fecha.strftime('%y')}"
 
 
-@router.get("/tickets", response_class=HTMLResponse)
+@router.get("/tickets", response_class=HTMLResponse, dependencies=[Depends(captura)])
 async def tickets(request: Request, mensaje: str = None, aviso: str = None,
                  error: str = None):
     try:
@@ -222,13 +223,13 @@ async def tickets(request: Request, mensaje: str = None, aviso: str = None,
     )
 
 
-@router.get("/tickets/manual", response_class=HTMLResponse)
+@router.get("/tickets/manual", response_class=HTMLResponse, dependencies=[Depends(captura)])
 async def ticket_manual(request: Request):
     """Formulario para capturar un ticket sin PDF."""
     return _render_manual(request)
 
 
-@router.post("/tickets/manual")
+@router.post("/tickets/manual", dependencies=[Depends(captura)])
 async def crear_ticket_manual(
     request: Request,
     fecha: str = Form(...),
@@ -380,7 +381,7 @@ async def crear_ticket_manual(
     )
 
 
-@router.post("/cargar-archivos/")
+@router.post("/cargar-archivos/", dependencies=[Depends(captura)])
 async def cargar_archivos(archivos: List[UploadFile] = File(...)):
     subidos, fallidos, repetidos = 0, [], []
     for archivo in archivos:
@@ -417,7 +418,7 @@ async def cargar_archivos(archivos: List[UploadFile] = File(...)):
     return _redir(mensaje=f"Se cargaron {subidos} archivos. Revísalos antes de confirmar.")
 
 
-@router.post("/revisar-ticket/")
+@router.post("/revisar-ticket/", dependencies=[Depends(captura)])
 async def revisar_ticket(archivo_nombre: str = Form(...)):
     archivo_nombre = _nombre_seguro(archivo_nombre)
     pdf_path = UPLOAD_DIR / archivo_nombre
@@ -460,7 +461,7 @@ def _correcciones_guardadas(ticket: dict) -> List[dict]:
     return normalizar_correcciones(ticket, [])
 
 
-@router.post("/guardar-cambios/")
+@router.post("/guardar-cambios/", dependencies=[Depends(captura)])
 async def guardar_cambios(
     ticket_id: str = Form(...), correcciones: str = Form("[]")
 ):
@@ -581,7 +582,7 @@ async def reporte_ticket(request: Request, ticket_id: str):
     )
 
 
-@router.post("/confirmar-ticket/")
+@router.post("/confirmar-ticket/", dependencies=[Depends(captura)])
 async def confirmar_ticket(
     ticket_id: str = Form(...), correcciones: str = Form("[]")
 ):
@@ -649,7 +650,7 @@ async def confirmar_ticket(
     )
 
 
-@router.post("/descartar-ticket/")
+@router.post("/descartar-ticket/", dependencies=[Depends(captura)])
 async def descartar_ticket(ticket_id: str = Form(...)):
     ticket = cargar_staging(ticket_id)
     if ticket is None:

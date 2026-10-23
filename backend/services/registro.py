@@ -16,6 +16,7 @@ import sqlite3
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+from backend.auth import usuario_en_curso
 from backend.database import get_db_connection
 from backend.services.catalogo import (
     SIN_CATEGORIA,
@@ -293,8 +294,8 @@ def _insertar_ticket(
                              rfc_emisor, regimen_fiscal, folio, cliente,
                              forma_pago, tarjeta, total, ahorro, descuento,
                              subtotal, iva, ieps, articulos_declarados,
-                             origen, notas)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                             origen, notas, creado_por)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             ticket["archivo"], sha256, ticket["fecha_iso"],
@@ -315,6 +316,7 @@ def _insertar_ticket(
             ticket.get("articulos_declarados"),
             ticket.get("origen") or "pdf",
             _notas_ticket(ticket, conciliacion),
+            usuario_en_curso.get(),
         ),
     )
     return cursor.lastrowid

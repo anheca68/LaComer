@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block titulo %}Usuarios{% endblock %}
+
+{% block extra_styles %}
+<link rel="stylesheet" href="/static/css/admin.css">
+{% endblock %}
+
+{% block contenido %}
+<div class="admin-header">
+    <h1>Usuarios y roles</h1>
+</div>
+
+<p class="muted">
+    Un usuario puede tener varios roles. <strong>admin</strong>: gestiona usuarios y
+    corrige o anula tickets. <strong>capturista</strong>: agrega tickets y clasifica
+    productos. <strong>consulta</strong>: solo ve panel, consultas y reportes.
+</p>
+
+<div class="card">
+    <h2>Usuarios registrados</h2>
+    <table class="tabla-datos">
+        <thead>
+            <tr>
+                <th>Usuario</th>
+                <th>Nombre</th>
+                <th>Roles</th>
+                <th>Activo</th>
+                <th></th>
+                <th>Nueva contraseña</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for u in usuarios %}
+            <tr>
+                <td>{{ u.usuario }}</td>
+                <td>
+                    <input type="text" name="nombre" form="usuario-{{ u.id }}"
+                           class="input-admin" value="{{ u.nombre or '' }}">
+                </td>
+                <td>
+                    {% for rol in roles %}
+                    <label>
+                        <input type="checkbox" name="roles" value="{{ rol }}" form="usuario-{{ u.id }}"
+                               {% if rol in u.roles %}checked{% endif %}> {{ rol }}
+                    </label>
+                    {% endfor %}
+                </td>
+                <td>
+                    <input type="checkbox" name="activo" value="true" form="usuario-{{ u.id }}"
+                           {% if u.activo %}checked{% endif %}
+                           aria-label="Usuario activo">
+                </td>
+                <td>
+                    <form method="post" action="/admin/usuarios/{{ u.id }}" id="usuario-{{ u.id }}">
+                        <button type="submit" class="btn-admin">Guardar</button>
+                    </form>
+                </td>
+                <td>
+                    <form method="post" action="/admin/usuarios/{{ u.id }}/password">
+                        <input type="password" name="password" class="input-admin" minlength="8"
+                               required autocomplete="new-password" aria-label="Nueva contraseña">
+                        <button type="submit" class="btn-admin btn-secundario">Cambiar</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="card">
+    <h2>Nuevo usuario</h2>
+    <form method="post" action="/admin/usuarios">
+        <div class="form-group">
+            <label for="nuevo-usuario">Usuario</label>
+            <input type="text" id="nuevo-usuario" name="usuario" class="input-admin" required autocomplete="off">
+        </div>
+        <div class="form-group">
+            <label for="nuevo-nombre">Nombre</label>
+            <input type="text" id="nuevo-nombre" name="nombre" class="input-admin">
+        </div>
+        <div class="form-group">
+            <label for="nuevo-password">Contraseña (mínimo 8 caracteres)</label>
+            <input type="password" id="nuevo-password" name="password" class="input-admin"
+                   minlength="8" required autocomplete="new-password">
+        </div>
+        <div class="form-group">
+            <span>Roles</span>
+            {% for rol in roles %}
+            <label><input type="checkbox" name="roles" value="{{ rol }}"> {{ rol }}</label>
+            {% endfor %}
+        </div>
+        <button type="submit" class="btn-admin">Crear usuario</button>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block titulo %}Corregir ticket #{{ ticket.id }}{% endblock %}
+
+{% block extra_styles %}
+<link rel="stylesheet" href="/static/css/admin.css">
+<link rel="stylesheet" href="/static/css/consultas.css">
+{% endblock %}
+
+{% block contenido %}
+<div class="admin-header">
+    <h1>Ticket #{{ ticket.id }}
+        {% if ticket.estado == 'anulado' %}<span class="badge badge-alerta">Anulado</span>{% endif %}
+    </h1>
+    <a href="/ticket?q={{ ticket.id }}" class="link-volver">← Volver a la consulta</a>
+</div>
+
+<p class="muted">
+    Total registrado: ${{ "%.2f"|format(ticket.total) }} · Origen: {{ ticket.origen }}
+    · Registrado por: {{ ticket.creado_por_usuario or "sin dato (antes de los usuarios)" }}
+    {% if ticket.modificado_en %}
+    · Última modificación: {{ ticket.modificado_en }} por {{ ticket.modificado_por_usuario or "?" }}
+    {% endif %}
+</p>
+
+<div class="card">
+    <h2>Datos generales</h2>
+    <p class="muted">
+        Los importes y renglones no se editan aquí. Si están mal, anula el ticket
+        y captúralo de nuevo.
+    </p>
+    <form method="post" action="/admin/tickets/{{ ticket.id }}">
+        <div class="form-group">
+            <label for="fecha">Fecha</label>
+            <input type="date" id="fecha" name="fecha" class="input-admin" required value="{{ ticket.fecha }}">
+        </div>
+        <div class="form-group">
+            <label for="hora">Hora</label>
+            <input type="text" id="hora" name="hora" class="input-admin" placeholder="HH:MM" value="{{ ticket.hora or '' }}">
+        </div>
+        <div class="form-group">
+            <label for="establecimiento">Establecimiento</label>
+            <input type="text" id="establecimiento" name="establecimiento" class="input-admin" value="{{ ticket.establecimiento or '' }}">
+        </div>
+        <div class="form-group">
+            <label for="folio">Folio</label>
+            <input type="text" id="folio" name="folio" class="input-admin" value="{{ ticket.folio or '' }}">
+        </div>
+        <div class="form-group">
+            <label for="forma_pago">Forma de pago</label>
+            <input type="text" id="forma_pago" name="forma_pago" class="input-admin" value="{{ ticket.forma_pago or '' }}">
+        </div>
+        <div class="form-group">
+            <label for="tarjeta">Tarjeta</label>
+            <input type="text" id="tarjeta" name="tarjeta" class="input-admin" value="{{ ticket.tarjeta or '' }}">
+        </div>
+        <div class="form-group">
+            <label for="notas">Notas</label>
+            <textarea id="notas" name="notas" class="input-admin" rows="3">{{ ticket.notas or '' }}</textarea>
+        </div>
+        <button type="submit" class="btn-admin">Guardar cambios</button>
+    </form>
+</div>
+
+<div class="card">
+    {% if ticket.estado == 'anulado' %}
+    <h2>Reactivar ticket</h2>
+    <p class="muted">El ticket vuelve a contar en el panel y los reportes.</p>
+    <form method="post" action="/admin/tickets/{{ ticket.id }}/reactivar">
+        <div class="form-group">
+            <label for="motivo">Motivo (opcional)</label>
+            <input type="text" id="motivo" name="motivo" class="input-admin">
+        </div>
+        <button type="submit" class="btn-admin">Reactivar</button>
+    </form>
+    {% else %}
+    <h2>Anular ticket</h2>
+    <p class="muted">
+        El ticket deja de contar en el panel y los reportes, pero no se borra:
+        se puede reactivar después.
+    </p>
+    <form method="post" action="/admin/tickets/{{ ticket.id }}/anular">
+        <div class="form-group">
+            <label for="motivo">Motivo</label>
+            <input type="text" id="motivo" name="motivo" class="input-admin" required>
+        </div>
+        <button type="submit" class="btn-admin btn-peligro">Anular</button>
+    </form>
+    {% endif %}
+</div>
+
+{% if renglones %}
+<div class="card">
+    <h2>Renglones</h2>
+    <table class="tabla-datos">
+        <thead>
+            <tr><th>#</th><th>Descripción</th><th>Cant.</th><th>Total</th><th>Tipo</th></tr>
+        </thead>
+        <tbody>
+            {% for r in renglones %}
+            <tr>
+                <td>{{ r.linea }}</td>
+                <td>{{ r.descripcion }}</td>
+                <td>{{ r.cantidad }}</td>
+                <td>${{ "%.2f"|format(r.total) }}</td>
+                <td>{{ r.tipo }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+{% endblock %}

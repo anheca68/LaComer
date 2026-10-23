@@ -42,7 +42,13 @@
                 {% if ticket.origen == 'manual' %}
                 <span class="badge">Captura manual</span>
                 {% endif %}
+                {% if ticket.estado == 'anulado' %}
+                <span class="badge badge-alerta">Anulado</span>
+                {% endif %}
             </div>
+            {% if usuario and usuario.es_admin %}
+            <a href="/admin/tickets/{{ ticket.id }}" class="boton boton-secundario">Corregir o anular</a>
+            {% endif %}
         </div>
 
         <div class="info-ticket">

@@ -8,6 +8,7 @@ qué se cambió, cuándo y por qué, y revertir cambios si es necesario.
 import sqlite3
 from typing import Any, Dict, List, Optional
 
+from backend.auth import usuario_en_curso
 from backend.database import get_db_connection
 
 
@@ -30,13 +31,17 @@ def registrar_cambio(
         campo: Campo modificado (opcional).
         valor_anterior: Valor antes del cambio (opcional).
         valor_nuevo: Valor después del cambio (opcional).
+
+    El usuario se toma de la sesión de la petición en curso.
     """
     conn.execute(
         """
-        INSERT INTO log_cambios (tabla, registro_id, accion, campo, valor_anterior, valor_nuevo)
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO log_cambios (tabla, registro_id, accion, campo, valor_anterior,
+                                 valor_nuevo, usuario_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
         """,
-        (tabla, registro_id, accion, campo, valor_anterior, valor_nuevo),
+        (tabla, registro_id, accion, campo, valor_anterior, valor_nuevo,
+         usuario_en_curso.get()),
     )
 
 
@@ -57,18 +62,21 @@ def obtener_cambios(
     """
     conn = get_db_connection()
     try:
-        sql = "SELECT * FROM log_cambios WHERE 1=1"
+        sql = (
+            "SELECT l.*, u.usuario FROM log_cambios l "
+            "LEFT JOIN usuarios u ON u.id = l.usuario_id WHERE 1=1"
+        )
         params = []
 
         if tabla:
-            sql += " AND tabla = ?"
+            sql += " AND l.tabla = ?"
             params.append(tabla)
 
         if registro_id is not None:
-            sql += " AND registro_id = ?"
+            sql += " AND l.registro_id = ?"
             params.append(registro_id)
 
-        sql += " ORDER BY id DESC LIMIT ?"
+        sql += " ORDER BY l.id DESC LIMIT ?"
         params.append(limite)
 
         filas = conn.execute(sql, params).fetchall()

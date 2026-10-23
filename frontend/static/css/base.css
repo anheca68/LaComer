@@ -228,6 +228,17 @@ a:hover {
     word-break: break-all;
 }
 
+/* Usuario con sesión y botón para salir, encima de la ruta de la base */
+.lateral .sesion-usuario {
+    font-size: 12px;
+    color: #cbd5e1;
+    word-break: normal;
+}
+
+.lateral .pie form {
+    margin: 6px 0 10px;
+}
+
 /* Submenú de Tickets: dos accesos dentro de la misma sección */
 .nav-submenu {
     margin: 2px 0 6px;

@@ -10,9 +10,10 @@ import logging
 from pathlib import Path
 from typing import Optional
 
-from fastapi import APIRouter, Form, Request
+from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import RedirectResponse
 
+from backend.auth import solo_admin
 from backend.config import CATALOGO_EXCEL_PATH, PROCESADOS_DIR, STAGING_DIR
 from backend.web import render
 from backend.database import get_db_connection
@@ -36,7 +37,8 @@ from backend.services.importar_historico import (
     sugerir_comunes,
 )
 
-router = APIRouter()
+# La carga histórica reemplaza datos en bloque: solo la usa un admin.
+router = APIRouter(dependencies=[Depends(solo_admin)])
 logger = logging.getLogger(__name__)
 
 ARCHIVO_PLAN = STAGING_DIR / "importacion_historica.json"

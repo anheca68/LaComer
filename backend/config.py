@@ -52,3 +52,7 @@ CATALOGO_DB_DIR = Path(
 ).expanduser()
 CATALOGO_DB_PATH = CATALOGO_DB_DIR / "despensa.db"
 CATALOGO_DB_DIR.mkdir(parents=True, exist_ok=True)
+
+# Marca la cookie de sesión como `Secure` (solo HTTPS). Actívala con
+# COOKIE_SEGURA=1 cuando la aplicación se sirva detrás de HTTPS.
+COOKIE_SEGURA = os.environ.get("COOKIE_SEGURA", "") == "1"

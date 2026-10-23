@@ -497,6 +497,50 @@ GROUP BY t.id
 HAVING  ABS(t.total - SUM(d.total)) > 0.01;
 """
 
+# Usuarios con uno o más roles. Las sesiones viven en la base y no en memoria
+# para sobrevivir a un reinicio; se guarda el hash del token, no el token.
+# `creado_por`/`modificado_por` y `log_cambios.usuario_id` quedan en NULL para
+# lo registrado antes de esta migración.
+MIGRACION_9_USUARIOS = """
+CREATE TABLE IF NOT EXISTS usuarios (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    usuario         TEXT    NOT NULL UNIQUE COLLATE NOCASE,
+    nombre          TEXT,
+    password_hash   TEXT    NOT NULL,
+    activo          INTEGER NOT NULL DEFAULT 1 CHECK (activo IN (0, 1)),
+    creado_en       TEXT    NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS roles (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    nombre      TEXT    NOT NULL UNIQUE,
+    descripcion TEXT
+);
+
+INSERT OR IGNORE INTO roles (nombre, descripcion) VALUES
+    ('admin', 'Gestiona usuarios, agrega, modifica y anula tickets'),
+    ('capturista', 'Agrega tickets PDF o manuales y clasifica productos'),
+    ('consulta', 'Solo ve panel, consultas y reportes');
+
+CREATE TABLE IF NOT EXISTS usuario_roles (
+    usuario_id  INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+    rol_id      INTEGER NOT NULL REFERENCES roles(id),
+    PRIMARY KEY (usuario_id, rol_id)
+);
+
+CREATE TABLE IF NOT EXISTS sesiones (
+    token_hash  TEXT    PRIMARY KEY,
+    usuario_id  INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+    expira_en   TEXT    NOT NULL,
+    creado_en   TEXT    NOT NULL DEFAULT (datetime('now'))
+);
+
+ALTER TABLE tickets ADD COLUMN creado_por INTEGER REFERENCES usuarios(id);
+ALTER TABLE tickets ADD COLUMN modificado_por INTEGER REFERENCES usuarios(id);
+ALTER TABLE tickets ADD COLUMN modificado_en TEXT;
+ALTER TABLE log_cambios ADD COLUMN usuario_id INTEGER REFERENCES usuarios(id);
+"""
+
 MIGRACIONES = [
     (1, MIGRACION_1_CATALOGO),
     (2, MIGRACION_2_GASTOS),
@@ -506,6 +550,7 @@ MIGRACIONES = [
     (6, MIGRACION_6_LOG_CAMBIOS),
     (7, MIGRACION_7_NORMALIZAR_DESCRIPCION),
     (8, MIGRACION_8_ORIGEN_MANUAL),
+    (9, MIGRACION_9_USUARIOS),
 ]
 
 VERSION_ESPERADA = MIGRACIONES[-1][0]

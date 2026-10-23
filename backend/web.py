@@ -41,6 +41,7 @@ def render(
     nombre: str,
     seccion: str,
     context: Optional[dict] = None,
+    status_code: int = 200,
     **params: Any,
 ):
     """Renderiza una plantilla con la sección marcada para la barra lateral.
@@ -49,9 +50,18 @@ def render(
     con Starlette y con lo que ya escribían las rutas. Con los dos nombres, un
     `context=` a secas se iba en `**params` y la plantilla recibía el contexto
     vacío sin quejarse.
+
+    `usuario` es quien inició sesión (o None en el login): la barra lateral lo
+    usa para mostrar solo lo que su rol permite.
     """
     return templates.TemplateResponse(
         request=request,
         name=nombre,
-        context={"seccion": seccion, **(context or {}), **params},
+        context={
+            "seccion": seccion,
+            "usuario": getattr(request.state, "usuario", None),
+            **(context or {}),
+            **params,
+        },
+        status_code=status_code,
     )

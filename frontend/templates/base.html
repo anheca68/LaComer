@@ -51,6 +51,9 @@
             </div>
             <div class="version">v2.0</div>
 
+            {# Sin sesión (pantalla de login) no hay menú. Con sesión, cada grupo
+               aparece solo si el rol del usuario lo permite. #}
+            {% if usuario %}
             <nav id="menu-lateral" aria-label="Navegación principal">
                 <div class="grupo">Resumen</div>
                 <a href="/" class="{% if seccion == 'panel' %}activo{% endif %}"
@@ -72,6 +75,7 @@
                     <span class="icono">&#128269;</span><span class="texto">Por ticket</span>
                 </a>
 
+                {% if usuario.puede_capturar %}
                 <div class="grupo">Operación</div>
                 <div class="nav-submenu{% if seccion in ('tickets', 'ticket_manual') %} con-activo{% endif %}">
                     <div class="nav-submenu-titulo{% if seccion in ('tickets', 'ticket_manual') %} activo{% endif %}">
@@ -86,6 +90,7 @@
                         <span class="icono">&#9998;</span><span class="texto">Captura manual</span>
                     </a>
                 </div>
+                {% endif %}
                 <a href="/catalogo" class="{% if seccion == 'catalogo' %}activo{% endif %}"
                    data-tooltip="Catálogo" aria-label="Catálogo">
                     <span class="icono">&#9635;</span><span class="texto">Catálogo</span>
@@ -95,12 +100,20 @@
                    aria-label="Registro de cambios">
                     <span class="icono">&#8635;</span><span class="texto">Registro de cambios</span>
                 </a>
-                <a href="/admin/login" class="{% if seccion == 'admin' %}activo{% endif %}"
-                   data-tooltip="Admin" aria-label="Admin">
-                    <span class="icono">&#9881;</span><span class="texto">Admin</span>
-                </a>
 
-                {% if carga_inicial_abierta() %}
+                {% if usuario.es_admin %}
+                <div class="grupo">Administración</div>
+                <a href="/admin/usuarios" class="{% if seccion == 'usuarios' %}activo{% endif %}"
+                   data-tooltip="Usuarios" aria-label="Usuarios">
+                    <span class="icono">&#9787;</span><span class="texto">Usuarios</span>
+                </a>
+                <a href="/admin/normalizar-productos" class="{% if seccion == 'admin' %}activo{% endif %}"
+                   data-tooltip="Normalizar productos" aria-label="Normalizar productos">
+                    <span class="icono">&#9881;</span><span class="texto">Normalizar productos</span>
+                </a>
+                {% endif %}
+
+                {% if usuario.es_admin and carga_inicial_abierta() %}
                 <div class="grupo">Mantenimiento</div>
                 <a href="/importar" class="{% if seccion == 'importar' %}activo{% endif %}"
                    data-tooltip="Carga inicial" aria-label="Carga inicial">
@@ -110,8 +123,16 @@
             </nav>
 
             <div class="pie">
+                <div class="sesion-usuario">
+                    {{ usuario.nombre or usuario.usuario }}
+                    <small>({{ usuario.roles|sort|join(", ") }})</small>
+                </div>
+                <form method="post" action="/logout">
+                    <button type="submit" class="boton boton-secundario">Cerrar sesión</button>
+                </form>
                 {{ db_path }}
             </div>
+            {% endif %}
         </aside>
 
         <main class="principal">

@@ -4,7 +4,6 @@ import json
 import sqlite3
 
 import pytest
-from fastapi.testclient import TestClient
 
 from backend import database
 from backend.services import panel, staging
@@ -126,10 +125,8 @@ def test_confirmar_manual_detecta_duplicado(datos_temporales):
         confirmar_y_registrar(ticket, correcciones, sha)
 
 
-def test_flujo_http_manual_crea_staging_y_confirma(datos_temporales):
-    from backend.main import app
-
-    cliente = TestClient(app)
+def test_flujo_http_manual_crea_staging_y_confirma(datos_temporales, iniciar_sesion):
+    cliente = iniciar_sesion("capturista", usuario="capturista1")
 
     respuesta = cliente.get("/tickets/manual")
     assert respuesta.status_code == 200
@@ -190,13 +187,16 @@ def test_flujo_http_manual_crea_staging_y_confirma(datos_temporales):
     conn = database.get_db_connection()
     try:
         fila = conn.execute(
-            "SELECT origen, folio, total FROM tickets WHERE folio = 'HTTP-1'"
+            "SELECT t.origen, t.folio, t.total, u.usuario AS creado_por "
+            "FROM tickets t LEFT JOIN usuarios u ON u.id = t.creado_por "
+            "WHERE t.folio = 'HTTP-1'"
         ).fetchone()
     finally:
         conn.close()
 
     assert fila["origen"] == "manual"
     assert fila["total"] == 20.0
+    assert fila["creado_por"] == "capturista1"
     assert not (datos_temporales / "staging" / f"{ticket_id}.json").exists()
 
 
@@ -222,7 +222,7 @@ def test_migracion_8_conserva_tickets_y_permite_origen_manual(tmp_path):
         aplicadas = database.migrar(conn)
 
         assert 8 in aplicadas
-        assert database.version_actual(conn) == 8
+        assert database.version_actual(conn) == database.VERSION_ESPERADA
         assert conn.execute("SELECT COUNT(*) FROM tickets").fetchone()[0] == 1
         assert conn.execute("SELECT COUNT(*) FROM detalle_tickets").fetchone()[0] == 1
         assert conn.execute("PRAGMA foreign_key_check").fetchall() == []

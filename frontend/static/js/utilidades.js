@@ -27,6 +27,11 @@ function formatoMoneda(valor) {
  */
 async function fetchJSON(url, opciones = {}) {
     const respuesta = await fetch(url, opciones);
+    // La sesión venció mientras la pantalla seguía abierta: volver al login.
+    if (respuesta.status === 401) {
+        window.location.href = "/login?siguiente=" + encodeURIComponent(location.pathname + location.search);
+        throw new Error("Sesión vencida");
+    }
     if (!respuesta.ok) {
         throw new Error(`HTTP ${respuesta.status}: ${respuesta.statusText}`);
     }

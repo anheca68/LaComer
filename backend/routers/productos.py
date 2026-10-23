@@ -1,8 +1,9 @@
 from urllib.parse import quote
 
-from fastapi import APIRouter, Form, Request
+from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 
+from backend.auth import captura
 from backend.web import render
 from backend.services.catalogo import (
     SIN_CATEGORIA,
@@ -58,7 +59,7 @@ async def editor_catalogo(
     )
 
 
-@router.post("/catalogo/reclasificar")
+@router.post("/catalogo/reclasificar", dependencies=[Depends(captura)])
 async def guardar_reclasificacion(
     descripcion: str = Form(...),
     sku: str = Form(""),

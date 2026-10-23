@@ -9,7 +9,9 @@ services:
       - "8001:8001"
     environment:
       DATA_DIR: /app/data
+      ADMIN_USUARIO: ${ADMIN_USUARIO:-admin}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Define ADMIN_PASSWORD en .env}
+      COOKIE_SEGURA: ${COOKIE_SEGURA:-0}
     volumes:
       - ./data:/app/data
     stop_grace_period: 30s

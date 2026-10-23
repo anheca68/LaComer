@@ -8,10 +8,12 @@ App para registro de tickets de la Comer -- Análisis de Gastos de Super.
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-python run.py
+ADMIN_USUARIO=admin ADMIN_PASSWORD='una-contraseña-larga' python run.py
 ```
 
-La aplicación queda disponible en `http://localhost:8000`.
+La aplicación queda disponible en `http://localhost:8000`. La primera vez,
+`ADMIN_USUARIO` y `ADMIN_PASSWORD` crean el primer administrador (ver
+**Usuarios y roles**); después ya no hace falta definirlas.
 
 En local, los datos se guardan por defecto en `backend/`:
 
@@ -24,6 +26,34 @@ backend/staging/
 backend/descartados/
 backend/backups/
 ```
+
+### Usuarios y roles
+
+Toda la aplicación pide iniciar sesión (salvo `/login` y `/health`). Cada
+persona tiene su usuario y contraseña, y puede tener uno o varios roles:
+
+| Rol | Puede |
+|-----|-------|
+| `admin` | Lo mismo que `capturista` y `consulta`, más gestionar usuarios (**Administración → Usuarios**), corregir o anular tickets registrados, normalizar productos y la carga inicial |
+| `capturista` | Subir tickets PDF, capturar tickets a mano y clasificar productos del catálogo |
+| `consulta` | Ver panel, reportes, consultas, catálogo y registro de cambios |
+
+- **Primer administrador:** si la base no tiene usuarios, al arrancar se crea
+  uno con `ADMIN_USUARIO` (por defecto `admin`) y `ADMIN_PASSWORD`. Con
+  usuarios ya creados, esas variables no tienen efecto.
+- **Contraseñas:** mínimo 8 caracteres, guardadas con `scrypt` y sal.
+- **Sesiones:** duran 8 horas y se guardan en la base, así que sobreviven a un
+  reinicio. Cambiar la contraseña o desactivar a un usuario cierra sus sesiones.
+- **Trazabilidad:** cada ticket guarda quién lo registró y quién lo modificó
+  por última vez; el registro de cambios guarda el usuario de cada cambio.
+- **Corregir o anular tickets:** desde **Consulta por ticket**, el `admin` usa
+  **Corregir o anular**. Se editan los datos generales (fecha, hora, folio,
+  establecimiento, forma de pago, tarjeta, notas); los importes no. Un ticket
+  anulado deja de contar en panel y reportes y se puede reactivar.
+- **HTTPS:** si la aplicación se sirve con HTTPS, define `COOKIE_SEGURA=1`.
+
+La migración 9 agrega las tablas de usuarios y se aplica sola al arrancar; los
+tickets anteriores quedan con el usuario que los registró vacío.
 
 ### Captura manual de tickets
 
@@ -51,8 +81,12 @@ migración 8, que reconstruye la tabla `tickets` para permitir el origen
    Editar `.env` y definir una contraseña segura:
 
    ```text
+   ADMIN_USUARIO=admin
    ADMIN_PASSWORD=una-contraseña-larga
    ```
+
+   Estos datos crean el primer administrador la primera vez que arranca la
+   aplicación.
 
 2. Crear la carpeta de datos persistentes:
 

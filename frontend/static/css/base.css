@@ -422,9 +422,18 @@ a:hover {
     position: relative;
 }
 
+/* `padding: 0` anula el relleno general de los botones (componentes.css), que
+   en 40 px dejaba sin espacio a las iniciales y las corría a la derecha. */
 .avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
     width: 40px;
     height: 40px;
+    padding: 0;
+    line-height: 1;
+    white-space: nowrap;
     border-radius: 50%;
     border: 2px solid var(--color-superficie);
     background: var(--color-secundario);

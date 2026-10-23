@@ -22,4 +22,4 @@ else
 fi
 
 # Servidor (uvicorn con recarga automática, ver run.py)
-python run.py
+python3 run.py

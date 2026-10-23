@@ -228,17 +228,6 @@ a:hover {
     word-break: break-all;
 }
 
-/* Usuario con sesión y botón para salir, encima de la ruta de la base */
-.lateral .sesion-usuario {
-    font-size: 12px;
-    color: #cbd5e1;
-    word-break: normal;
-}
-
-.lateral .pie form {
-    margin: 6px 0 10px;
-}
-
 /* Submenú de Tickets: dos accesos dentro de la misma sección */
 .nav-submenu {
     margin: 2px 0 6px;
@@ -420,6 +409,101 @@ a:hover {
 
 .principal > h1 {
     margin-bottom: 20px;
+}
+
+/* ── Barra superior: avatar y menú del usuario ───────────────── */
+.barra-superior {
+    display: flex;
+    justify-content: flex-end;
+    margin: -10px 0 14px;
+}
+
+.menu-usuario {
+    position: relative;
+}
+
+.avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid var(--color-superficie);
+    background: var(--color-secundario);
+    color: var(--color-blanco);
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    box-shadow: var(--sombra-suave);
+    transition: background var(--transicion), box-shadow var(--transicion);
+}
+
+.avatar:hover,
+.avatar[aria-expanded="true"] {
+    background: var(--color-secundario-oscuro);
+    box-shadow: var(--sombra);
+}
+
+.avatar:focus-visible {
+    outline: 3px solid var(--color-secundario);
+    outline-offset: 2px;
+}
+
+.menu-usuario-panel {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 8px);
+    min-width: 220px;
+    background: var(--color-superficie);
+    border: 1px solid var(--color-borde);
+    border-radius: var(--radio-sm);
+    box-shadow: var(--sombra);
+    padding: 6px;
+    z-index: 50;
+}
+
+.menu-usuario-cabecera {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 8px 10px 10px;
+    margin-bottom: 4px;
+    border-bottom: 1px solid var(--color-borde);
+    color: var(--color-texto);
+}
+
+.menu-usuario-cabecera small {
+    color: var(--color-texto-claro);
+}
+
+.menu-usuario-panel a,
+.menu-usuario-panel button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 8px 10px;
+    border: 0;
+    border-radius: 6px;
+    background: none;
+    color: var(--color-texto);
+    font: inherit;
+    font-size: 14px;
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.menu-usuario-panel a:hover,
+.menu-usuario-panel button:hover,
+.menu-usuario-panel a:focus-visible,
+.menu-usuario-panel button:focus-visible,
+.menu-usuario-panel a.activo {
+    background: var(--color-superficie-alt);
+    outline: none;
+}
+
+.menu-usuario-panel button {
+    color: var(--color-peligro);
 }
 
 /* Navegación horizontal (legado, ya no se usa pero se conserva) */

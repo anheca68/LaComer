@@ -59,6 +59,12 @@ class Usuario:
         return bool(self.roles.intersection(roles))
 
     @property
+    def iniciales(self) -> str:
+        """Hasta dos letras para el avatar: de las dos primeras palabras del nombre."""
+        palabras = (self.nombre or self.usuario).split()
+        return "".join(p[0] for p in palabras[:2]).upper() or "?"
+
+    @property
     def es_admin(self) -> bool:
         return "admin" in self.roles
 

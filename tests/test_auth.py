@@ -225,6 +225,23 @@ def test_menu_segun_rol(bd_temporal, iniciar_sesion):
     assert ">Registros<" in admin and 'href="/catalogo"' in admin
 
 
+def test_avatar_muestra_settings_solo_al_admin(bd_temporal, iniciar_sesion):
+    admin = iniciar_sesion("admin", usuario="jefe").get("/").text
+    assert 'id="avatar-usuario"' in admin
+    assert "Settings" in admin and 'action="/logout"' in admin
+    for rol in ("capturista", "consulta"):
+        pagina = iniciar_sesion(rol).get("/").text
+        assert 'id="avatar-usuario"' in pagina and 'action="/logout"' in pagina
+        assert "Settings" not in pagina
+
+
+def test_iniciales_del_avatar(bd_temporal):
+    crear_usuario("mlopez", PASSWORD_PRUEBA, ["consulta"], nombre="María López Pérez")
+    crear_usuario("ana", PASSWORD_PRUEBA, ["consulta"])
+    assert autenticar("mlopez", PASSWORD_PRUEBA).iniciales == "ML"
+    assert autenticar("ana", PASSWORD_PRUEBA).iniciales == "A"
+
+
 # ---------------------------------------------------------------------------
 # Administración de usuarios y tickets
 # ---------------------------------------------------------------------------

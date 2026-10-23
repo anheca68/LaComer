@@ -23,7 +23,7 @@
     </script>
     <title>{% block titulo %}Gestor de Tickets{% endblock %}</title>
     <!-- CSS modular -->
-    <link rel="stylesheet" href="/static/css/base.css?v=20261021-5">
+    <link rel="stylesheet" href="/static/css/base.css?v=20261023-1">
     <link rel="stylesheet" href="/static/css/componentes.css">
     <link rel="stylesheet" href="/static/css/formulario.css">
     <link rel="stylesheet" href="/static/css/modal.css">
@@ -107,10 +107,6 @@
 
                 {% if usuario.es_admin %}
                 <div class="grupo">Administración</div>
-                <a href="/admin/usuarios" class="{% if seccion == 'usuarios' %}activo{% endif %}"
-                   data-tooltip="Usuarios" aria-label="Usuarios">
-                    <span class="icono">&#9787;</span><span class="texto">Usuarios</span>
-                </a>
                 <a href="/admin/normalizar-productos" class="{% if seccion == 'admin' %}activo{% endif %}"
                    data-tooltip="Normalizar productos" aria-label="Normalizar productos">
                     <span class="icono">&#9881;</span><span class="texto">Normalizar productos</span>
@@ -127,19 +123,45 @@
             </nav>
 
             <div class="pie">
-                <div class="sesion-usuario">
-                    {{ usuario.nombre or usuario.usuario }}
-                    <small>({{ usuario.roles|sort|join(", ") }})</small>
-                </div>
-                <form method="post" action="/logout">
-                    <button type="submit" class="boton boton-secundario">Cerrar sesión</button>
-                </form>
                 {{ db_path }}
             </div>
             {% endif %}
         </aside>
 
         <main class="principal">
+
+            {# Avatar del usuario: abre un menú con Settings (solo admin) y
+               Cerrar sesión. El menú lo controla usuario.js. #}
+            {% if usuario %}
+            <div class="barra-superior">
+                <div class="menu-usuario">
+                    <button type="button" class="avatar" id="avatar-usuario"
+                            aria-haspopup="menu" aria-expanded="false"
+                            aria-controls="menu-usuario"
+                            aria-label="Menú de {{ usuario.nombre or usuario.usuario }}"
+                            title="{{ usuario.nombre or usuario.usuario }}">
+                        {{ usuario.iniciales }}
+                    </button>
+                    <div class="menu-usuario-panel" id="menu-usuario" role="menu" hidden>
+                        <div class="menu-usuario-cabecera">
+                            <strong>{{ usuario.nombre or usuario.usuario }}</strong>
+                            <small>{{ usuario.usuario }} &middot; {{ usuario.roles|sort|join(", ") }}</small>
+                        </div>
+                        {% if usuario.es_admin %}
+                        <a href="/admin/usuarios" role="menuitem"
+                           class="{% if seccion == 'usuarios' %}activo{% endif %}">
+                            <span class="icono" aria-hidden="true">&#9881;</span> Settings
+                        </a>
+                        {% endif %}
+                        <form method="post" action="/logout">
+                            <button type="submit" role="menuitem">
+                                <span class="icono" aria-hidden="true">&#10162;</span> Cerrar sesión
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
 
             {% if mensaje %}
             <div class="alert-success">{{ mensaje }}</div>
@@ -180,6 +202,7 @@
     <script src="/static/js/utilidades.js"></script>
     <script src="/static/js/modal.js"></script>
     <script src="/static/js/menu.js?v=20261021-4"></script>
+    <script src="/static/js/usuario.js?v=20261023-1"></script>
     {% block scripts %}{% endblock %}
 
 </body>

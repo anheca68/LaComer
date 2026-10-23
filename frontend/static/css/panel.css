@@ -3,9 +3,12 @@
    ============================================================ */
 
 /* ── KPI's (indicadores) ─────────────────────────────────────── */
+/* Cinco tarjetas por fila: con más de cinco, las restantes pasan a la segunda
+   fila con el mismo ancho, alineadas a la izquierda. `minmax(0, 1fr)` evita
+   que un valor largo ensanche su columna y descuadre la fila. */
 .kpis {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(184px, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 15px;
     margin-bottom: 22px;
 }
@@ -213,6 +216,11 @@ table.datos tbody tr:hover {
 
 /* Tablet / laptop pequeña */
 @media (max-width: 1024px) {
+    /* Con la barra lateral, cinco columnas no caben los importes. */
+    .kpis {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
     .rejilla {
         grid-template-columns: 1fr;
     }
@@ -229,7 +237,6 @@ table.datos tbody tr:hover {
 /* Tablet vertical */
 @media (max-width: 768px) {
     .kpis {
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
         gap: 10px;
     }
 

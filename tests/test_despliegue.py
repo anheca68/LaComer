@@ -56,3 +56,8 @@ def test_repositorio_no_versiona_bases_ni_secretos():
     ).stdout.splitlines()
     prohibido = re.compile(r"(\.db|\.sqlite3?|\.db-(wal|shm|journal))$|(^|/)\.env$|^data/|^backups/")
     assert [a for a in archivos if prohibido.search(a)] == []
+
+
+def test_contenedor_usa_hora_de_mexico():
+    compose = (RAIZ / "docker-compose.yml").read_text()
+    assert "TZ: ${TZ:-America/Mexico_City}" in compose

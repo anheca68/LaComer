@@ -14,6 +14,8 @@ services:
       ADMIN_USUARIO: ${ADMIN_USUARIO:-admin}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Define ADMIN_PASSWORD en .env}
       COOKIE_SEGURA: ${COOKIE_SEGURA:-0}
+      # Hora de México para respaldos, tickets y sesiones (la imagen trae tzdata).
+      TZ: ${TZ:-America/Mexico_City}
     volumes:
       # Base de datos: volumen nombrado que gestiona Docker. Sobrevive a
       # `docker compose down` y a reconstruir la imagen; solo se borra con

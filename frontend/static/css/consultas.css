@@ -15,7 +15,7 @@
 }
 
 .descripcion code {
-    background: #f0f0f0;
+    background: var(--color-superficie-alt);
     padding: 0.15rem 0.4rem;
     border-radius: 3px;
     font-size: 0.9em;
@@ -40,7 +40,7 @@
 .input-busqueda:focus {
     outline: none;
     border-color: var(--color-secundario);
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+    box-shadow: 0 0 0 3px var(--color-foco);
 }
 
 /* Resultados de búsqueda */
@@ -86,10 +86,10 @@
 .badge {
     display: inline-block;
     padding: 0.25rem 0.65rem;
-    background: #eef2f7;
+    background: var(--color-superficie-alt);
     border-radius: 999px;
     font-size: 0.8rem;
-    color: #475569;
+    color: var(--color-neutro);
     font-weight: 600;
 }
 
@@ -123,7 +123,7 @@
 
 .filtro-anio select {
     padding: 0.5rem;
-    border: 1px solid #ddd;
+    border: 1px solid var(--color-borde);
     border-radius: 4px;
 }
 
@@ -149,7 +149,7 @@
 .tabla-datos th {
     background: var(--color-superficie-alt);
     font-weight: 700;
-    color: #475569;
+    color: var(--color-neutro);
 }
 
 .tabla-datos tbody tr:hover {
@@ -157,7 +157,7 @@
 }
 
 .tabla-datos tr.descuento {
-    background: #fffbeb;
+    background: var(--color-aviso-suave);
 }
 
 .tabla-datos .ahorro {
@@ -195,8 +195,8 @@
 }
 
 .tarjeta-total.destacada {
-    background: #eff6ff;
-    border-color: #bfdbfe;
+    background: var(--color-info-suave);
+    border-color: var(--color-info-suave);
 }
 
 .tarjeta-total .etiqueta {
@@ -318,9 +318,9 @@
 .btn-secundario {
     display: inline-block;
     padding: 0.75rem 1.5rem;
-    background: #64748b;
-    color: white;
-    border: none;
+    background: var(--color-superficie);
+    color: var(--color-texto);
+    border: 1px solid var(--color-borde-fuerte);
     border-radius: var(--radio-sm);
     font-size: 1rem;
     text-decoration: none;
@@ -329,5 +329,7 @@
 }
 
 .btn-secundario:hover {
-    background: #475569;
+    background: var(--color-superficie-alt);
+    color: var(--color-texto);
+    text-decoration: none;
 }

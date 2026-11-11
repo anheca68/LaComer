@@ -2,10 +2,15 @@
 {% block titulo %}Panel de gastos{% endblock %}
 
 {% block extra_styles %}
-<link rel="stylesheet" href="/static/css/panel.css?v=20261023-1">
+<link rel="stylesheet" href="/static/css/panel.css?v=20261111-1">
 {% endblock %}
 
 {% block contenido %}
+
+<div class="encabezado">
+    <h1>Panel</h1>
+    <p class="muted">Resumen de gastos del súper</p>
+</div>
 
 <div class="acciones">
     {% if periodos and periodos.hay_datos %}
@@ -71,7 +76,7 @@
      el mes está completo: un mes a medias siempre parecería una caída. -->
 <div class="kpis">
     <div class="kpi">
-        <div class="etiqueta">Gasto neto</div>
+        <div class="etiqueta">Gasto neto<span class="kpi-ico" aria-hidden="true"><svg><use href="#i-dinero"/></svg></span></div>
         <div class="valor">$ {{ "{:,.2f}".format(ind.gasto_neto) }}</div>
         <div class="nota">{{ ind.renglones }} renglones &middot; {{ ind.productos }} productos</div>
     </div>
@@ -82,7 +87,7 @@
     {% if por_dia and dias %}
     {% set dia_top = dias | max(attribute='neto') %}
     <div class="kpi alerta">
-        <div class="etiqueta">Día más caro</div>
+        <div class="etiqueta">Día más caro<span class="kpi-ico rosa" aria-hidden="true"><svg><use href="#i-calendario"/></svg></span></div>
         <div class="valor">$ {{ "{:,.2f}".format(dia_top.neto) }}</div>
         <div class="nota">
             {{ dia_top.dia }} &middot; {{ dia_top.tickets }} tickets
@@ -90,7 +95,7 @@
     </div>
     {% elif not por_dia and ind.ultimo_periodo %}
     <div class="kpi">
-        <div class="etiqueta">{{ ind.ultimo_periodo }}</div>
+        <div class="etiqueta">{{ ind.ultimo_periodo }}<span class="kpi-ico indigo" aria-hidden="true"><svg><use href="#i-calendario"/></svg></span></div>
         <div class="valor">$ {{ "{:,.2f}".format(ultimo.neto) }}</div>
         <div class="nota">
             {{ ultimo.tickets }} tickets
@@ -106,7 +111,7 @@
     {% endif %}
 
     <div class="kpi">
-        <div class="etiqueta">Ticket promedio</div>
+        <div class="etiqueta">Ticket promedio<span class="kpi-ico indigo" aria-hidden="true"><svg><use href="#i-carrito"/></svg></span></div>
         <div class="valor">$ {{ "{:,.2f}".format(ind.ticket_promedio) }}</div>
         <div class="nota">
             {{ ind.tickets }} tickets
@@ -115,7 +120,7 @@
     </div>
 
     <div class="kpi">
-        <div class="etiqueta">Tickets registrados</div>
+        <div class="etiqueta">Tickets registrados<span class="kpi-ico indigo" aria-hidden="true"><svg><use href="#i-ticket"/></svg></span></div>
         <div class="valor">{{ ind.tickets_total }}</div>
         <div class="nota">
             {% if periodo_activo == 'todo' %}
@@ -127,13 +132,13 @@
     </div>
 
     <div class="kpi {{ 'alerta' if ind.ahorro > 0 else '' }}">
-        <div class="etiqueta">Descuentos</div>
+        <div class="etiqueta">Descuentos<span class="kpi-ico ambar" aria-hidden="true"><svg><use href="#i-etiqueta"/></svg></span></div>
         <div class="valor">{{ "$ {:,.2f}".format(ind.ahorro) if ind.ahorro else "—" }}</div>
         <div class="nota">{% if ind.ahorro %}cash back y promos{% else %}sin registros aún{% endif %}</div>
     </div>
 
     <div class="kpi bien">
-        <div class="etiqueta">Ticket más caro</div>
+        <div class="etiqueta">Ticket más caro<span class="kpi-ico" aria-hidden="true"><svg><use href="#i-trofeo"/></svg></span></div>
         <div class="valor" style="font-size:14px; line-height:1.4;">
             {{ ind.ticket_max if ind.ticket_max else "—" }}
         </div>
@@ -141,7 +146,7 @@
 
     {% if ind.tendencia_3m is not none %}
     <div class="kpi {{ 'alerta' if ind.tendencia_3m > 5 else 'bien' if ind.tendencia_3m < -5 else '' }}">
-        <div class="etiqueta">Tendencia 3 meses</div>
+        <div class="etiqueta">Tendencia 3 meses<span class="kpi-ico indigo" aria-hidden="true"><svg><use href="#i-tendencia"/></svg></span></div>
         <div class="valor">{{ "%+.1f"|format(ind.tendencia_3m) }}%</div>
         <div class="nota">vs trimestre anterior</div>
     </div>
@@ -149,7 +154,7 @@
 
     {% if ind.dia_semana_top %}
     <div class="kpi">
-        <div class="etiqueta">Día de mayor gasto</div>
+        <div class="etiqueta">Día de mayor gasto<span class="kpi-ico indigo" aria-hidden="true"><svg><use href="#i-calendario"/></svg></span></div>
         <div class="valor">{{ ind.dia_semana_top }}</div>
         <div class="nota">promedio del período</div>
     </div>
@@ -157,7 +162,7 @@
 
     {% if ind.sin_hora %}
     <div class="kpi alerta">
-        <div class="etiqueta">Sin hora</div>
+        <div class="etiqueta">Sin hora<span class="kpi-ico rosa" aria-hidden="true"><svg><use href="#i-reloj"/></svg></span></div>
         <div class="valor">{{ ind.sin_hora }}</div>
         <div class="nota">tickets sin hora registrada</div>
     </div>
@@ -371,5 +376,5 @@
    renderizado y, sobre todo, el orden con el que se ejecutan es el del orden
    en que aparecen. #}
 <script defer src="/static/js/chart.umd.min.js"></script>
-<script defer src="/static/js/panel.js"></script>
+<script defer src="/static/js/panel.js?v=20261111-1"></script>
 {% endblock %}

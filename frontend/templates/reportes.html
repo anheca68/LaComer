@@ -10,11 +10,11 @@
     }
 
     .opcion {
-        background: white;
+        background: var(--color-superficie);
         border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+        box-shadow: var(--sombra);
         padding: 18px;
-        border: 1px solid #e3e8ee;
+        border: 1px solid var(--color-borde);
         display: flex;
         flex-direction: column;
     }
@@ -36,18 +36,18 @@
     }
 
     .estado.lista {
-        background: #d4edda;
-        color: #155724;
+        background: var(--color-exito-suave);
+        color: var(--color-exito-texto);
     }
 
     .estado.pendiente {
-        background: #fdf3d8;
-        color: #856404;
+        background: var(--color-aviso-suave);
+        color: var(--color-aviso-texto);
     }
 
     .opcion p {
         font-size: 13px;
-        color: #5a6b7c;
+        color: var(--color-texto-claro);
         line-height: 1.55;
         margin: 0 0 14px;
         flex: 1;
@@ -55,20 +55,20 @@
 
     .opcion ul {
         font-size: 12.5px;
-        color: #5a6b7c;
+        color: var(--color-texto-claro);
         line-height: 1.7;
         margin: 0 0 14px;
         padding-left: 18px;
     }
 
     .aviso-pendiente {
-        background: #fffaf0;
-        border-left: 4px solid #e0a800;
+        background: var(--color-aviso-suave);
+        border-left: 4px solid var(--color-advertencia);
         padding: 13px 16px;
         border-radius: 6px;
         font-size: 13px;
         line-height: 1.6;
-        color: #6b5a1e;
+        color: var(--color-aviso-texto);
         margin-bottom: 20px;
     }
 

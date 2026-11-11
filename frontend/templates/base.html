@@ -18,19 +18,49 @@
                 } else if (localStorage.getItem("menuColapsado") === "1") {
                     document.documentElement.classList.add("menu-colapsado");
                 }
+                // Tema: el elegido por el usuario o, si no eligió, el del sistema.
+                var tema = localStorage.getItem("tema") ||
+                    (window.matchMedia("(prefers-color-scheme: dark)").matches ? "oscuro" : "claro");
+                if (tema === "oscuro") document.documentElement.setAttribute("data-tema", "oscuro");
             } catch (e) { /* localStorage puede estar bloqueado */ }
         })();
     </script>
-    <title>{% block titulo %}Gestor de Tickets{% endblock %}</title>
+    <title>{% block titulo %}LaComer{% endblock %} · LaComer</title>
     <!-- CSS modular -->
-    <link rel="stylesheet" href="/static/css/base.css?v=20261023-2">
-    <link rel="stylesheet" href="/static/css/componentes.css">
-    <link rel="stylesheet" href="/static/css/formulario.css">
-    <link rel="stylesheet" href="/static/css/modal.css">
+    <link rel="stylesheet" href="/static/css/base.css?v=20261111-1">
+    <link rel="stylesheet" href="/static/css/componentes.css?v=20261111-1">
+    <link rel="stylesheet" href="/static/css/formulario.css?v=20261111-1">
+    <link rel="stylesheet" href="/static/css/modal.css?v=20261111-1">
     {% block extra_styles %}{% endblock %}
 </head>
 
 <body>
+
+    {# Íconos de trazo, definidos una vez y usados con <use href="#i-...">. #}
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+        <symbol id="i-panel" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="2"/><rect x="14" y="3" width="7" height="5" rx="2"/><rect x="14" y="12" width="7" height="9" rx="2"/><rect x="3" y="16" width="7" height="5" rx="2"/></symbol>
+        <symbol id="i-reporte" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 17v-3M12 17v-6M15 17v-2"/></symbol>
+        <symbol id="i-buscar" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+        <symbol id="i-ticket" viewBox="0 0 24 24"><path d="M5 3h14v18l-2.5-1.5L14 21l-2-1.5L10 21l-2.5-1.5L5 21z"/><path d="M9 8h6M9 12h6M9 16h3"/></symbol>
+        <symbol id="i-carpeta" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol>
+        <symbol id="i-subir" viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></symbol>
+        <symbol id="i-lapiz" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/></symbol>
+        <symbol id="i-catalogo" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10"/></symbol>
+        <symbol id="i-historial" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+        <symbol id="i-ajustes" viewBox="0 0 24 24"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></symbol>
+        <symbol id="i-usuarios" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M21 20c0-2.6-1.7-4.9-4-5.7"/></symbol>
+        <symbol id="i-salir" viewBox="0 0 24 24"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3"/><path d="M10 17l-5-5 5-5M5 12h11"/></symbol>
+        <symbol id="i-luna" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></symbol>
+        <symbol id="i-sol" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+        <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></symbol>
+        <symbol id="i-dinero" viewBox="0 0 24 24"><rect x="2.5" y="6" width="19" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></symbol>
+        <symbol id="i-carrito" viewBox="0 0 24 24"><circle cx="9" cy="20" r="1.3"/><circle cx="18" cy="20" r="1.3"/><path d="M2.5 3.5h2.7l2.4 12h11.2l2-8.5H6.2"/></symbol>
+        <symbol id="i-etiqueta" viewBox="0 0 24 24"><path d="M3 12V4a1 1 0 0 1 1-1h8l9 9-9 9z"/><circle cx="8" cy="8" r="1.5"/></symbol>
+        <symbol id="i-tendencia" viewBox="0 0 24 24"><path d="m3 17 6-6 4 4 8-8"/><path d="M15 7h6v6"/></symbol>
+        <symbol id="i-calendario" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></symbol>
+        <symbol id="i-reloj" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+        <symbol id="i-trofeo" viewBox="0 0 24 24"><path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 21h8M10 17h4"/></symbol>
+    </svg>
 
     <div class="app">
 
@@ -39,8 +69,8 @@
         <aside class="lateral">
             <div class="lateral-cabecera">
                 <div class="marca">
-                    <span class="marca-larga">Gestor de<br>Tickets</span>
-                    <span class="marca-corta">GT</span>
+                    <span class="marca-logo" aria-hidden="true">LC</span>
+                    <span class="marca-larga"><b>LaComer</b><small>Gastos del súper</small></span>
                 </div>
                 <button type="button" class="menu-toggle" id="menu-toggle"
                         aria-controls="menu-lateral" aria-expanded="true"
@@ -58,36 +88,36 @@
                 <div class="grupo">Resumen</div>
                 <a href="/" class="{% if seccion == 'panel' %}activo{% endif %}"
                    data-tooltip="Panel" aria-label="Panel">
-                    <span class="icono">&#9632;</span><span class="texto">Panel</span>
+                    <span class="icono" aria-hidden="true"><svg><use href="#i-panel"/></svg></span><span class="texto">Panel</span>
                 </a>
                 <a href="/reportes" class="{% if seccion == 'reportes' %}activo{% endif %}"
                    data-tooltip="Reportes" aria-label="Reportes">
-                    <span class="icono">&#9707;</span><span class="texto">Reportes</span>
+                    <span class="icono" aria-hidden="true"><svg><use href="#i-reporte"/></svg></span><span class="texto">Reportes</span>
                 </a>
 
                 <div class="grupo">Consultas</div>
                 <a href="/articulo" class="{% if seccion == 'articulo' %}activo{% endif %}"
                    data-tooltip="Por artículo" aria-label="Por artículo">
-                    <span class="icono">&#9776;</span><span class="texto">Por artículo</span>
+                    <span class="icono" aria-hidden="true"><svg><use href="#i-buscar"/></svg></span><span class="texto">Por artículo</span>
                 </a>
                 <a href="/ticket" class="{% if seccion == 'ticket' %}activo{% endif %}"
                    data-tooltip="Por ticket" aria-label="Por ticket">
-                    <span class="icono">&#128269;</span><span class="texto">Por ticket</span>
+                    <span class="icono" aria-hidden="true"><svg><use href="#i-ticket"/></svg></span><span class="texto">Por ticket</span>
                 </a>
 
                 {% if usuario.puede_capturar %}
                 <div class="grupo">Operación</div>
                 <div class="nav-submenu{% if seccion in ('tickets', 'ticket_manual') %} con-activo{% endif %}">
                     <div class="nav-submenu-titulo{% if seccion in ('tickets', 'ticket_manual') %} activo{% endif %}">
-                        <span class="icono">&#9776;</span><span class="texto">Tickets</span>
+                        <span class="icono" aria-hidden="true"><svg><use href="#i-carpeta"/></svg></span><span class="texto">Tickets</span>
                     </div>
                     <a href="/tickets" class="nav-hijo{% if seccion == 'tickets' %} activo{% endif %}"
                        data-tooltip="Ticket PDF" aria-label="Ticket PDF">
-                        <span class="icono">&#128196;</span><span class="texto">Ticket PDF</span>
+                        <span class="icono" aria-hidden="true"><svg><use href="#i-subir"/></svg></span><span class="texto">Ticket PDF</span>
                     </a>
                     <a href="/tickets/manual" class="nav-hijo{% if seccion == 'ticket_manual' %} activo{% endif %}"
                        data-tooltip="Captura manual" aria-label="Captura manual">
-                        <span class="icono">&#9998;</span><span class="texto">Captura manual</span>
+                        <span class="icono" aria-hidden="true"><svg><use href="#i-lapiz"/></svg></span><span class="texto">Captura manual</span>
                     </a>
                 </div>
                 {% endif %}
@@ -96,12 +126,12 @@
                 <div class="grupo">Registros</div>
                 <a href="/catalogo" class="{% if seccion == 'catalogo' %}activo{% endif %}"
                    data-tooltip="Catálogo" aria-label="Catálogo">
-                    <span class="icono">&#9635;</span><span class="texto">Catálogo</span>
+                    <span class="icono" aria-hidden="true"><svg><use href="#i-catalogo"/></svg></span><span class="texto">Catálogo</span>
                 </a>
                 <a href="/log" class="{% if seccion == 'log' %}activo{% endif %}"
                    data-tooltip="Registro de cambios"
                    aria-label="Registro de cambios">
-                    <span class="icono">&#8635;</span><span class="texto">Registro de cambios</span>
+                    <span class="icono" aria-hidden="true"><svg><use href="#i-historial"/></svg></span><span class="texto">Registro de cambios</span>
                 </a>
                 {% endif %}
 
@@ -109,7 +139,7 @@
                 <div class="grupo">Administración</div>
                 <a href="/admin/normalizar-productos" class="{% if seccion == 'admin' %}activo{% endif %}"
                    data-tooltip="Normalizar productos" aria-label="Normalizar productos">
-                    <span class="icono">&#9881;</span><span class="texto">Normalizar productos</span>
+                    <span class="icono" aria-hidden="true"><svg><use href="#i-ajustes"/></svg></span><span class="texto">Normalizar productos</span>
                 </a>
                 {% endif %}
             </nav>
@@ -126,6 +156,11 @@
                Cerrar sesión. El menú lo controla usuario.js. #}
             {% if usuario %}
             <div class="barra-superior">
+                <button type="button" class="boton-icono" id="cambiar-tema"
+                        aria-label="Cambiar entre tema claro y oscuro" title="Tema claro / oscuro">
+                    <span class="icono solo-claro" aria-hidden="true"><svg><use href="#i-luna"/></svg></span>
+                    <span class="icono solo-oscuro" aria-hidden="true"><svg><use href="#i-sol"/></svg></span>
+                </button>
                 <div class="menu-usuario">
                     <button type="button" class="avatar" id="avatar-usuario"
                             aria-haspopup="menu" aria-expanded="false"
@@ -142,12 +177,12 @@
                         {% if usuario.es_admin %}
                         <a href="/admin/usuarios" role="menuitem"
                            class="{% if seccion == 'usuarios' %}activo{% endif %}">
-                            <span class="icono" aria-hidden="true">&#9881;</span> Settings
+                            <span class="icono" aria-hidden="true"><svg><use href="#i-usuarios"/></svg></span> Settings
                         </a>
                         {% endif %}
                         <form method="post" action="/logout">
                             <button type="submit" role="menuitem">
-                                <span class="icono" aria-hidden="true">&#10162;</span> Cerrar sesión
+                                <span class="icono" aria-hidden="true"><svg><use href="#i-salir"/></svg></span> Cerrar sesión
                             </button>
                         </form>
                     </div>
@@ -195,6 +230,7 @@
     <script src="/static/js/modal.js"></script>
     <script src="/static/js/menu.js?v=20261021-4"></script>
     <script src="/static/js/usuario.js?v=20261023-1"></script>
+    <script src="/static/js/tema.js?v=20261111-1"></script>
     {% block scripts %}{% endblock %}
 
 </body>

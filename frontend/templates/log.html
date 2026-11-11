@@ -3,7 +3,7 @@
 {% block titulo %}Registro de cambios{% endblock %}
 
 {% block extra_styles %}
-<link rel="stylesheet" href="/static/css/catalogo.css">
+<link rel="stylesheet" href="/static/css/catalogo.css?v=20261111-1">
 <style>
     .log-filtro {
         display: flex;
@@ -29,9 +29,9 @@
         font-size: 11px;
         font-weight: bold;
     }
-    .log-INSERT { background: #d4edda; color: #155724; }
-    .log-UPDATE { background: #fff4e5; color: #a04000; }
-    .log-DELETE { background: #fdecea; color: #b3261e; }
+    .log-INSERT { background: var(--color-exito-suave); color: var(--color-exito-texto); }
+    .log-UPDATE { background: var(--color-aviso-suave); color: var(--color-aviso-texto); }
+    .log-DELETE { background: var(--color-peligro-suave); color: var(--color-peligro-texto); }
     .log-valor {
         max-width: 200px;
         overflow: hidden;

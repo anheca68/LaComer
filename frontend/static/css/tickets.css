@@ -4,7 +4,7 @@
 
 /* Ticket en revisión */
 .ticket-revision {
-    background: #fbfdff;
+    background: var(--color-superficie-alt);
     border: 1px solid var(--color-borde);
     border-radius: var(--radio-sm);
     padding: 16px;
@@ -28,8 +28,8 @@
 
 .badge-manual {
     display: inline-block;
-    background: #dbeafe;
-    color: #1d4ed8;
+    background: var(--color-info-suave);
+    color: var(--color-info-texto);
     border-radius: 999px;
     padding: 2px 8px;
     font-size: 11px;
@@ -100,7 +100,7 @@
 
 .tabla-manual th {
     background: var(--color-superficie-alt);
-    color: #475569;
+    color: var(--color-neutro);
     white-space: nowrap;
 }
 
@@ -132,7 +132,7 @@
     margin-left: auto;
     align-self: center;
     font-size: 14px;
-    color: #475569;
+    color: var(--color-neutro);
 }
 
 .manual-total strong {
@@ -168,7 +168,7 @@ table.revision input[type="text"] {
 
 /* Estados de fila */
 tr.sin-match {
-    background: #fff4e5;
+    background: var(--color-aviso-suave);
 }
 
 tr.sin-match td:first-child {
@@ -191,7 +191,7 @@ tr.validado td:first-child {
 
 .barra {
     height: 8px;
-    background: #e2e8f0;
+    background: var(--color-superficie-alt);
     border-radius: 999px;
     overflow: hidden;
     max-width: 320px;
@@ -208,7 +208,7 @@ tr.validado td:first-child {
 .resumen-detalle {
     margin: 8px 0 0;
     font-size: 13px;
-    color: #526071;
+    color: var(--color-neutro);
 }
 
 /* Conciliación */
@@ -220,25 +220,25 @@ tr.validado td:first-child {
 }
 
 .conciliacion-cuadra {
-    background: #ecfdf5;
-    color: #065f46;
+    background: var(--color-exito-suave);
+    color: var(--color-exito-texto);
 }
 
 .conciliacion-ajuste,
 .conciliacion-sin_total {
-    background: #fffbeb;
-    color: #92400e;
+    background: var(--color-aviso-suave);
+    color: var(--color-aviso-texto);
 }
 
 .conciliacion-faltante {
-    background: #fef2f2;
-    color: #991b1b;
+    background: var(--color-peligro-suave);
+    color: var(--color-peligro-texto);
 }
 
 /* Cash back */
 tfoot .fila-cash-back th {
-    background: #e8f5e9;
-    color: #1b5e20;
+    background: var(--color-exito-suave);
+    color: var(--color-exito-texto);
     font-weight: normal;
 }
 
@@ -254,7 +254,7 @@ tfoot .fila-cash-back ul {
 
 /* Plan de importación */
 .plan-fila-alerta {
-    background: #fff4e5;
+    background: var(--color-aviso-suave);
 }
 
 .plan-fila-excluida {
@@ -263,13 +263,13 @@ tfoot .fila-cash-back ul {
 
 .plan-nota {
     font-size: 12px;
-    color: #1b5e20;
+    color: var(--color-exito-texto);
     margin-top: 2px;
 }
 
 .plan-diagnostico {
     font-size: 12px;
-    color: #b3541e;
+    color: var(--color-aviso-texto);
     margin-top: 2px;
 }
 
@@ -286,11 +286,11 @@ tfoot .fila-cash-back ul {
 }
 
 .plan-lote {
-    border: 1px solid #e3e6ea;
+    border: 1px solid var(--color-borde);
     border-radius: 8px;
     padding: 12px;
     margin-bottom: 14px;
-    background: #fafbfc;
+    background: var(--color-superficie-alt);
 }
 
 .plan-lote form {
@@ -305,7 +305,7 @@ tfoot .fila-cash-back ul {
 }
 
 .plan-detalle > td {
-    background: #f7f9fa;
+    background: var(--color-superficie-alt);
     padding: 12px 16px;
 }
 
@@ -320,8 +320,8 @@ tfoot .fila-cash-back ul {
 }
 
 .plan-linea-descuento td {
-    color: #1b5e20;
-    background: #f1f8f2;
+    color: var(--color-exito-texto);
+    background: var(--color-exito-suave);
 }
 
 .plan-alta {
@@ -365,8 +365,8 @@ tfoot .fila-cash-back ul {
 
 .btn-toggle:hover {
     background: var(--color-superficie-alt);
-    border-color: #94a3b8;
-    color: #334155;
+    border-color: var(--color-texto-tenue);
+    color: var(--color-neutro);
 }
 
 .btn-toggle:focus {

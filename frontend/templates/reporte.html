@@ -4,24 +4,24 @@
 
 {% block extra_styles %}
 <style>
-    body { background: #f4f6f8; }
+    body { background: var(--color-fondo); }
 
     .hoja {
         max-width: 900px;
         margin: 0 auto;
-        background: #fff;
+        background: var(--color-superficie);
         padding: 32px 36px;
-        border: 1px solid #dfe4e8;
+        border: 1px solid var(--color-borde);
     }
 
     .reporte-encabezado {
-        border-bottom: 3px solid #2e7d32;
+        border-bottom: 3px solid var(--color-acento);
         padding-bottom: 14px;
         margin-bottom: 18px;
     }
 
     .reporte-encabezado h1 { margin: 0 0 4px; font-size: 21px; }
-    .reporte-meta { color: #666; font-size: 13px; }
+    .reporte-meta { color: var(--color-texto-claro); font-size: 13px; }
 
     .reporte-cifras {
         display: flex;
@@ -34,28 +34,28 @@
     .reporte-cifras strong {
         display: block;
         font-size: 18px;
-        color: #2e7d32;
+        color: var(--color-exito-texto);
     }
 
     table.rep { width: 100%; border-collapse: collapse; font-size: 12px; }
     table.rep th, table.rep td {
-        border: 1px solid #d8dee3;
+        border: 1px solid var(--color-borde);
         padding: 5px 7px;
         text-align: left;
     }
-    table.rep thead th { background: #eceff1; }
-    table.rep tfoot td { background: #eceff1; font-weight: bold; }
-    tr.falta td { background: #fdecea; }
+    table.rep thead th { background: var(--color-superficie-alt); }
+    table.rep tfoot td { background: var(--color-superficie-alt); font-weight: bold; }
+    tr.falta td { background: var(--color-peligro-suave); }
 
     .semaforo { font-size: 11px; padding: 1px 6px; border-radius: 3px; }
-    .semaforo.ok { background: #e3f2e5; color: #1b5e20; }
-    .semaforo.floja { background: #fff4d6; color: #7a5b00; }
-    .semaforo.mal { background: #fdecea; color: #b3261e; }
+    .semaforo.ok { background: var(--color-exito-suave); color: var(--color-exito-texto); }
+    .semaforo.floja { background: var(--color-aviso-suave); color: var(--color-aviso-texto); }
+    .semaforo.mal { background: var(--color-peligro-suave); color: var(--color-peligro-texto); }
 
     .aviso {
-        background: #fdecea;
-        border: 1px solid #f5c6c2;
-        color: #8c1d16;
+        background: var(--color-peligro-suave);
+        border: 1px solid var(--color-peligro-suave);
+        color: var(--color-peligro-texto);
         padding: 10px 14px;
         margin-bottom: 18px;
         font-size: 13px;
@@ -68,7 +68,7 @@
         gap: 10px;
         align-items: center;
     }
-    .barra-imprimir p { margin: 0; color: #666; font-size: 13px; }
+    .barra-imprimir p { margin: 0; color: var(--color-texto-claro); font-size: 13px; }
 
     @media print {
         body { background: #fff; }

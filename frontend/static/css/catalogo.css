@@ -18,7 +18,7 @@
 
 /* Tabla del catálogo */
 .tabla-catalogo {
-    background: var(--color-blanco);
+    background: var(--color-superficie);
     border-radius: var(--radio);
     box-shadow: var(--sombra);
     overflow: hidden;
@@ -40,7 +40,7 @@
 
 /* Formulario de reclasificación */
 .form-reclasificacion {
-    background: var(--color-blanco);
+    background: var(--color-superficie);
     padding: 20px;
     border-radius: var(--radio);
     box-shadow: var(--sombra);

@@ -18,7 +18,7 @@
 }
 
 .modal {
-    background: var(--color-blanco);
+    background: var(--color-superficie);
     border-radius: var(--radio);
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
     max-width: 480px;
@@ -29,13 +29,14 @@
 
 .modal-header {
     padding: 16px 20px;
-    background: var(--color-primario);
-    color: white;
+    background: var(--color-superficie);
+    color: var(--color-primario);
+    border-bottom: 1px solid var(--color-borde);
 }
 
 .modal-header h3 {
     margin: 0;
-    color: white;
+    color: var(--color-primario);
     font-size: 16px;
 }
 
@@ -61,7 +62,7 @@
 .modal-input:focus {
     outline: none;
     border-color: var(--color-secundario);
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+    box-shadow: 0 0 0 3px var(--color-foco);
 }
 
 .modal-footer {
@@ -77,11 +78,13 @@
 }
 
 .modal-footer .btn-cancelar {
-    background: #64748b;
+    background: var(--color-superficie);
+    color: var(--color-texto);
+    border: 1px solid var(--color-borde-fuerte);
 }
 
 .modal-footer .btn-cancelar:hover {
-    background: #475569;
+    background: var(--color-superficie-alt);
 }
 
 .modal-footer .btn-confirmar {

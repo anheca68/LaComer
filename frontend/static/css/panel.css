@@ -9,54 +9,90 @@
 .kpis {
     display: grid;
     grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 15px;
-    margin-bottom: 22px;
+    gap: 16px;
+    margin-bottom: 20px;
 }
 
 .kpi {
+    position: relative;
     background: var(--color-superficie);
-    padding: 16px 18px;
+    padding: 18px;
     border: 1px solid var(--color-borde);
-    border-left: 4px solid var(--color-secundario);
     border-radius: var(--radio);
-    box-shadow: var(--sombra-suave);
+    box-shadow: var(--sombra);
     transition: box-shadow var(--transicion), transform var(--transicion);
 }
 
 .kpi:hover {
-    box-shadow: var(--sombra);
+    box-shadow: var(--sombra-alta);
     transform: translateY(-1px);
 }
 
+/* Etiqueta con el ícono a la derecha (el ícono va en .kpi-ico). */
 .kpi .etiqueta {
-    font-size: 10.5px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    min-height: 32px;
+    font-size: 13px;
     color: var(--color-texto-claro);
-    margin-bottom: 6px;
-    font-weight: 700;
+    margin-bottom: 8px;
+    font-weight: 500;
 }
+
+.kpi-ico {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    flex: none;
+    border-radius: 10px;
+    background: var(--color-exito-suave);
+    color: var(--color-acento);
+}
+
+.kpi-ico svg {
+    width: 17px;
+    height: 17px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.kpi-ico.indigo { background: var(--color-info-suave); color: var(--color-enlace); }
+.kpi-ico.ambar  { background: var(--color-aviso-suave); color: var(--color-advertencia); }
+.kpi-ico.rosa   { background: var(--color-peligro-suave); color: var(--color-peligro); }
 
 .kpi .valor {
     font-size: 24px;
     font-weight: 700;
     color: var(--color-primario);
-    line-height: 1.15;
+    line-height: 1.2;
     letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
 }
 
 .kpi .nota {
-    font-size: 11.5px;
-    color: var(--color-texto-claro);
-    margin-top: 5px;
+    font-size: 12.5px;
+    color: var(--color-texto-tenue);
+    margin-top: 4px;
 }
 
-.kpi.alerta {
-    border-left-color: var(--color-peligro);
+/* Las tarjetas que piden atención colorean su ícono, no un borde. */
+.kpi.alerta .kpi-ico { background: var(--color-peligro-suave); color: var(--color-peligro); }
+.kpi.bien .kpi-ico   { background: var(--color-exito-suave); color: var(--color-acento); }
+
+/* Fila de controles del panel: período y exportaciones. */
+.acciones {
+    align-items: center;
+    margin: 0 0 20px;
 }
 
-.kpi.bien {
-    border-left-color: var(--color-acento);
+.acciones .boton {
+    margin: 0;
 }
 
 /* ── Rejilla de gráficas ─────────────────────────────────────── */
@@ -77,14 +113,14 @@
 }
 
 .tarjeta h3 {
-    margin: 0 0 4px;
+    margin: 0 0 2px;
     font-size: 15px;
 }
 
 .tarjeta .sub {
-    font-size: 12px;
-    color: var(--color-texto-claro);
-    margin: 0 0 14px;
+    font-size: 12.5px;
+    color: var(--color-texto-tenue);
+    margin: 0 0 16px;
 }
 
 /* ── Tablas de datos ─────────────────────────────────────────── */
@@ -96,18 +132,19 @@ table.datos {
 
 table.datos th {
     text-align: left;
-    padding: 9px 10px;
-    background: var(--color-superficie-alt);
-    color: #475569;
+    padding: 10px 12px;
+    background: transparent;
+    color: var(--color-texto-tenue);
     border-bottom: 1px solid var(--color-borde);
     white-space: nowrap;
     font-size: 11.5px;
-    letter-spacing: 0.03em;
+    font-weight: 600;
+    letter-spacing: 0.04em;
     text-transform: uppercase;
 }
 
 table.datos td {
-    padding: 8px 10px;
+    padding: 10px 12px;
     border-bottom: 1px solid var(--color-borde);
 }
 
@@ -118,14 +155,14 @@ table.datos th.num {
 }
 
 table.datos tbody tr:hover {
-    background: #f8fafc;
+    background: var(--color-hover);
 }
 
 /* Barra de proporción dentro de celdas */
 .barra {
-    background: #e2e8f0;
+    background: var(--color-superficie-alt);
     border-radius: 999px;
-    height: 7px;
+    height: 6px;
     position: relative;
     min-width: 60px;
     overflow: hidden;
@@ -160,40 +197,45 @@ table.datos tbody tr:hover {
 
 .filtro-periodo label {
     margin-top: 0;
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
+    font-size: 13px;
     color: var(--color-texto-claro);
-    font-weight: 700;
+    font-weight: 500;
 }
 
 .filtro-periodo select {
-    padding: 9px 12px;
-    border: 1px solid var(--color-borde-fuerte);
+    padding: 8px 12px;
+    border: 1px solid var(--color-borde);
     border-radius: var(--radio-sm);
     background: var(--color-superficie);
-    font-size: 13px;
+    font-size: 13.5px;
+    font-weight: 500;
     color: var(--color-texto);
     min-width: 220px;
     cursor: pointer;
+    box-shadow: var(--sombra);
+}
+
+.filtro-periodo select:focus {
+    outline: none;
+    border-color: var(--color-acento);
+    box-shadow: 0 0 0 3px var(--color-foco);
 }
 
 .filtro-periodo .actual {
     font-size: 12.5px;
-    color: #475569;
-    background: var(--color-superficie-alt);
+    font-weight: 600;
+    color: var(--color-info-texto);
+    background: var(--color-info-suave);
     border-radius: 999px;
     padding: 3px 11px;
 }
 
 .aviso-filtro {
-    background: #eff6ff;
-    border: 1px solid #dbeafe;
-    border-left: 4px solid var(--color-secundario);
-    padding: 12px 15px;
+    background: var(--color-info-suave);
+    padding: 12px 16px;
     border-radius: var(--radio-sm);
     font-size: 13px;
-    color: #334155;
+    color: var(--color-texto);
     margin-bottom: 18px;
     display: flex;
     align-items: center;
@@ -202,7 +244,7 @@ table.datos tbody tr:hover {
 }
 
 .aviso-filtro a {
-    color: var(--color-secundario);
+    color: var(--color-enlace);
     font-weight: 600;
 }
 

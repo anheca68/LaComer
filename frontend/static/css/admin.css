@@ -38,7 +38,7 @@
     display: block;
     margin-bottom: 6px;
     font-weight: 500;
-    color: #334155;
+    color: var(--color-neutro);
 }
 
 .input-admin {
@@ -53,7 +53,7 @@
 .input-admin:focus {
     outline: none;
     border-color: var(--color-secundario);
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+    box-shadow: 0 0 0 3px var(--color-foco);
 }
 
 .btn-admin {
@@ -79,11 +79,13 @@
 }
 
 .btn-secundario {
-    background: #64748b;
+    background: var(--color-superficie);
+    color: var(--color-texto);
+    border: 1px solid var(--color-borde-fuerte);
 }
 
 .btn-secundario:hover {
-    background: #475569;
+    background: var(--color-superficie-alt);
 }
 
 .btn-peligro {
@@ -91,7 +93,7 @@
 }
 
 .btn-peligro:hover {
-    background: #b91c1c;
+    background: var(--color-peligro-oscuro);
 }
 
 .link-volver {
@@ -171,7 +173,7 @@
 }
 
 tr.canonico {
-    background: #e8f5e9;
+    background: var(--color-exito-suave);
 }
 
 tr.canonico td {

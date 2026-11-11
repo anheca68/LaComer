@@ -1,31 +1,34 @@
 /* ============================================================
    componentes.css — Botones, tarjetas, tablas, badges, alertas
-   ============================================================ */
+   ============================================================
+   Solo usa variables de base.css, así funciona igual en tema claro y
+   oscuro. Los nombres de clase son los mismos de siempre. */
 
 /* Tarjetas */
 .card {
     background: var(--color-superficie);
-    padding: 22px;
+    padding: 20px;
     border: 1px solid var(--color-borde);
     border-radius: var(--radio);
     box-shadow: var(--sombra);
     margin-bottom: 20px;
 }
 
-/* Botones */
+/* Botones: acción principal en esmeralda */
 button {
     background: var(--color-secundario);
-    color: white;
-    border: none;
-    padding: 10px 16px;
+    color: #fff;
+    border: 1px solid transparent;
+    padding: 9px 15px;
     border-radius: var(--radio-sm);
     cursor: pointer;
     margin-top: 14px;
     font-family: inherit;
     font-size: 13.5px;
     font-weight: 600;
-    transition: background var(--transicion), transform var(--transicion),
-                box-shadow var(--transicion);
+    box-shadow: var(--sombra-suave);
+    transition: background var(--transicion), border-color var(--transicion),
+                color var(--transicion), transform var(--transicion);
 }
 
 button:hover {
@@ -39,16 +42,8 @@ button:active {
 button:focus-visible,
 .boton:focus-visible,
 .boton-secundario:focus-visible {
-    outline: 3px solid rgba(37, 99, 235, 0.25);
+    outline: 3px solid var(--color-foco);
     outline-offset: 2px;
-}
-
-button.secundario {
-    background: #475569;
-}
-
-button.secundario:hover {
-    background: #334155;
 }
 
 button:disabled {
@@ -56,157 +51,161 @@ button:disabled {
     cursor: not-allowed;
 }
 
+/* Botones secundarios: superficie con borde */
+button.secundario,
+.btn-exportar,
+.btn-alternar-chk,
+.boton-secundario {
+    background: var(--color-superficie);
+    color: var(--color-texto);
+    border: 1px solid var(--color-borde-fuerte);
+}
+
+button.secundario:hover,
+.btn-exportar:hover,
+.btn-alternar-chk:hover,
+.boton-secundario:hover {
+    background: var(--color-superficie-alt);
+    border-color: var(--color-texto-tenue);
+    color: var(--color-texto);
+    text-decoration: none;
+}
+
 .btn-process {
+    padding: 7px 13px;
+    margin: 0;
+}
+
+.btn-guardar {
     background: var(--color-secundario);
     padding: 7px 13px;
     margin: 0;
 }
 
-.btn-process:hover {
+.btn-guardar:hover {
     background: var(--color-secundario-oscuro);
 }
 
-.btn-guardar {
-    background: var(--color-acento);
-    padding: 7px 13px;
-    margin: 0;
-}
-
-.btn-guardar:hover {
-    background: var(--color-acento-oscuro);
-}
-
 .btn-exportar {
-    background: #475569;
     padding: 7px 13px;
     margin: 0;
-}
-
-.btn-exportar:hover {
-    background: #334155;
 }
 
 .boton-secundario {
     display: inline-block;
-    background: var(--color-superficie-alt);
-    color: #334155;
-    border: 1px solid var(--color-borde-fuerte);
     padding: 7px 13px;
     margin: 0;
     font-size: 13.5px;
     font-weight: 600;
     text-decoration: none;
     border-radius: var(--radio-sm);
+    box-shadow: var(--sombra-suave);
     transition: background var(--transicion), border-color var(--transicion);
-}
-
-.boton-secundario:hover {
-    background: #eef2f7;
-    border-color: #b8c4d4;
-    text-decoration: none;
 }
 
 .btn-descartar {
     background: var(--color-peligro);
-    padding: 10px 15px;
+    padding: 9px 15px;
 }
 
 .btn-descartar:hover {
-    background: #b91c1c;
+    background: var(--color-peligro-oscuro);
 }
 
 .btn-alternar-chk {
-    background: #475569;
     padding: 7px 13px;
     margin: 0;
     font-size: 13px;
 }
 
-.btn-alternar-chk:hover {
-    background: #334155;
-}
-
-.btn-ver {
-    background: none;
+/* Botones pequeños dentro de tablas */
+.btn-ver,
+.btn-limpiar {
+    background: transparent;
     border: 1px solid var(--color-borde-fuerte);
-    border-radius: 6px;
+    border-radius: 8px;
     padding: 3px 9px;
-    font-size: 11px;
+    font-size: 11.5px;
     font-weight: 600;
-    color: #475569;
+    color: var(--color-neutro);
     cursor: pointer;
     margin: 0;
-}
-
-.btn-ver:hover {
-    background: var(--color-superficie-alt);
-}
-
-.btn-quitar {
-    background: none;
-    border: 1px solid #fecaca;
-    color: #b91c1c;
-    border-radius: 6px;
-    cursor: pointer;
-    width: 22px;
-    height: 22px;
-    line-height: 1;
-    padding: 0;
-    margin: 0;
-}
-
-.btn-quitar:hover {
-    background: #fef2f2;
+    box-shadow: none;
 }
 
 .btn-limpiar {
-    background: none;
-    border: 1px dashed var(--color-borde-fuerte);
-    border-radius: 6px;
+    border-style: dashed;
     padding: 6px 11px;
     font-size: 12px;
-    color: #526071;
-    cursor: pointer;
-    margin: 0;
 }
 
+.btn-ver:hover,
 .btn-limpiar:hover {
     background: var(--color-superficie-alt);
+    color: var(--color-texto);
 }
 
-/* Botones de acción compartidos */
+.btn-quitar {
+    background: transparent;
+    border: 1px solid var(--color-peligro-suave);
+    color: var(--color-peligro-texto);
+    border-radius: 8px;
+    cursor: pointer;
+    width: 24px;
+    height: 24px;
+    line-height: 1;
+    padding: 0;
+    margin: 0;
+    box-shadow: none;
+}
+
+.btn-quitar:hover {
+    background: var(--color-peligro-suave);
+}
+
+/* Enlaces con forma de botón */
 .boton {
     display: inline-block;
-    padding: 9px 15px;
+    padding: 8px 14px;
     border-radius: var(--radio-sm);
     text-decoration: none;
     font-size: 13px;
     font-weight: 600;
-    border: 1px solid var(--color-secundario);
+    border: 1px solid var(--color-borde-fuerte);
+    background: var(--color-superficie);
+    color: var(--color-texto);
     text-align: center;
+    box-shadow: var(--sombra-suave);
     transition: background var(--transicion), border-color var(--transicion);
+}
+
+.boton:hover {
+    background: var(--color-superficie-alt);
+    color: var(--color-texto);
+    text-decoration: none;
 }
 
 .boton-primario {
     background: var(--color-secundario);
-    color: white;
+    border-color: var(--color-secundario);
+    color: #fff;
 }
 
 .boton-primario:hover {
     background: var(--color-secundario-oscuro);
     border-color: var(--color-secundario-oscuro);
-    color: white;
-    text-decoration: none;
+    color: #fff;
 }
 
 .boton-apagado {
     background: var(--color-superficie-alt);
-    color: #94a3b8;
+    color: var(--color-texto-tenue);
     border-color: var(--color-borde);
     cursor: not-allowed;
+    box-shadow: none;
 }
 
-/* Tablas */
+/* Tablas: encabezado discreto, filas con hover */
 table {
     width: 100%;
     border-collapse: collapse;
@@ -215,22 +214,33 @@ table {
 
 th, td {
     border-bottom: 1px solid var(--color-borde);
-    padding: 10px 11px;
+    padding: 11px 12px;
     text-align: left;
 }
 
 th {
-    background: var(--color-superficie-alt);
-    color: #475569;
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 0.02em;
+    background: transparent;
+    color: var(--color-texto-tenue);
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+tbody tr {
+    transition: background var(--transicion);
+}
+
+tbody tr:hover {
+    background: var(--color-hover);
 }
 
 tfoot .totales th {
-    background: #e8eef7;
-    color: #263449;
+    background: var(--color-superficie-alt);
+    color: var(--color-primario);
     font-size: 14px;
+    text-transform: none;
+    letter-spacing: 0;
 }
 
 tfoot .num {
@@ -238,53 +248,50 @@ tfoot .num {
     white-space: nowrap;
 }
 
-/* Badges */
-.badge-alerta {
+/* Insignias */
+.badge-alerta,
+.badge-ok {
     display: inline-block;
-    background: #fef3c7;
-    color: #92400e;
     border-radius: 999px;
-    padding: 2px 8px;
-    font-size: 11px;
+    padding: 2px 9px;
+    font-size: 11.5px;
+    font-weight: 600;
     margin-left: 6px;
+}
+
+.badge-alerta {
+    background: var(--color-aviso-suave);
+    color: var(--color-aviso-texto);
 }
 
 .badge-ok {
-    display: inline-block;
-    background: #d1fae5;
-    color: #065f46;
-    border-radius: 999px;
-    padding: 2px 8px;
-    font-size: 11px;
-    margin-left: 6px;
+    background: var(--color-exito-suave);
+    color: var(--color-exito-texto);
 }
 
-/* Alertas */
+/* Alertas: fondo suave, sin borde lateral */
 .alert-success,
 .alert-error,
 .alert-info {
-    padding: 11px 14px;
+    padding: 12px 16px;
     border-radius: var(--radio-sm);
-    margin-bottom: 15px;
-    border-left: 4px solid transparent;
+    margin-bottom: 16px;
+    font-weight: 500;
 }
 
 .alert-success {
-    background: #ecfdf5;
-    color: #065f46;
-    border-left-color: var(--color-acento);
+    background: var(--color-exito-suave);
+    color: var(--color-exito-texto);
 }
 
 .alert-error {
-    background: #fef2f2;
-    color: #991b1b;
-    border-left-color: var(--color-peligro);
+    background: var(--color-peligro-suave);
+    color: var(--color-peligro-texto);
 }
 
 .alert-info {
-    background: #eff6ff;
-    color: #1e40af;
-    border-left-color: var(--color-secundario);
+    background: var(--color-info-suave);
+    color: var(--color-info-texto);
 }
 
 /* Utilidades */

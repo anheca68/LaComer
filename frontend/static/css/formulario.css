@@ -5,7 +5,7 @@
 label {
     display: block;
     margin-top: 10px;
-    color: #334155;
+    color: var(--color-neutro);
     font-size: 13px;
     font-weight: 600;
 }
@@ -42,12 +42,12 @@ textarea:focus,
 select:focus {
     outline: none;
     border-color: var(--color-secundario);
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+    box-shadow: 0 0 0 3px var(--color-foco);
 }
 
 input::placeholder,
 textarea::placeholder {
-    color: #94a3b8;
+    color: var(--color-texto-tenue);
 }
 
 input[type="checkbox"] {
@@ -106,8 +106,8 @@ textarea {
 /* Campos con datos sugeridos (deducidos de PDF) */
 input[title],
 select[title] {
-    background: #fffbeb;
-    border-color: #f1d18a;
+    background: var(--color-aviso-suave);
+    border-color: var(--color-aviso-suave);
 }
 
 /* Input para nueva categoría/subcategoría (inline, legado) */

@@ -254,3 +254,7 @@ procesados/
 # Datos persistentes del despliegue con Docker
 /data/
 /backups/
+
+# Notas personales locales
+comentarios.md
+opencode_sesions.txt

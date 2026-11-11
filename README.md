@@ -176,6 +176,45 @@ Apache.
 La base de datos y los archivos de tickets no deben ser accesibles por HTTP.
 Expón únicamente el puerto `8001` del contenedor.
 
+## Actualizar dependencias
+
+Nada se actualiza solo. Todas las versiones están fijas y solo cambian cuando
+alguien las actualiza a mano:
+
+| Qué | Dónde se fija |
+|-----|---------------|
+| Paquetes de Python (incluidas las dependencias indirectas) | `requirements.txt` con `==` |
+| Herramientas de pruebas | `requirements-dev.txt` con `==` |
+| Python y sistema base de la imagen | `FROM` del `Dockerfile`, con versión exacta y `@sha256:` |
+| Chart.js | Copia local en `frontend/static/js/chart.umd.min.js`; no se descarga de internet |
+
+Además, en Docker `pip` instala con `--no-deps` y termina con `pip check`: si
+falta algún paquete en `requirements.txt`, el build falla en lugar de traer uno
+por su cuenta. Las pruebas (`tests/test_versiones_fijas.py`) fallan si una
+versión queda sin fijar.
+
+Para actualizar, cuando tú lo decidas:
+
+```bash
+# 1. Python: subir la versión de un paquete y regenerar la lista completa
+#    (el .venv se crea con uv; con un venv de pip usa `pip` en lugar de `uv pip`)
+uv pip install --python .venv/bin/python --upgrade <paquete>
+uv pip freeze --python .venv/bin/python --exclude pytest --exclude iniconfig \
+    --exclude packaging --exclude pluggy --exclude pygments > requirements.txt
+.venv/bin/python scripts/run_tests.py
+
+# 2. Imagen base: elegir la versión exacta (por ejemplo 3.13.17-slim-trixie),
+#    obtener su digest y ponerlo en el FROM del Dockerfile
+docker pull python:3.13.17-slim-trixie
+docker inspect --format '{{index .RepoDigests 0}}' python:3.13.17-slim-trixie
+
+# 3. Reconstruir la imagen en el NAS
+docker compose build && docker compose up -d
+```
+
+No uses `docker compose build --pull` ni herramientas de actualización
+automática de contenedores (como Watchtower) con este proyecto.
+
 ## Carga inicial del histórico
 
 La importación del histórico (Excel `DESPENSA.xlsx` y PDFs antiguos) ya no es

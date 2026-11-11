@@ -159,6 +159,41 @@ Los respaldos que genera **Normalizar productos** también quedan ahí, y ambos
 se pueden restaurar desde esa pantalla. Conviene respaldar antes de cada
 actualización y copiar `data/backups/` fuera del NAS de vez en cuando.
 
+### Desplegar desde el Mac
+
+`scripts/desplegar_nas.sh` actualiza el NAS con una versión que ya esté en
+GitHub, sin tocar la base productiva:
+
+```bash
+scripts/desplegar_nas.sh --simular            # muestra qué cambiaría, sin aplicar nada
+scripts/desplegar_nas.sh                      # despliega main
+scripts/desplegar_nas.sh rediseno-visual      # despliega otra rama o commit
+```
+
+Pasos que sigue el script:
+
+1. Comprueba que el commit esté subido a GitHub y que no contenga bases,
+   `.env` ni `data/`.
+2. Ejecuta las pruebas sobre ese commit exacto.
+3. Verifica que en el NAS existan la carpeta, el `.env` y el volumen
+   `lacomer_db`.
+4. Respalda la base productiva en `data/backups/`. Si el respaldo falla, se
+   detiene.
+5. Copia solo los archivos versionados en git (`git archive` + `rsync`), sin
+   tocar `data/`, `.env` ni ninguna base. Los archivos de código que ya no
+   existen se borran.
+6. Ejecuta `docker compose build` y `up -d`. Nunca usa `down -v`.
+7. Espera a que `/health` responda.
+
+La base del Mac nunca viaja al NAS, y la del NAS nunca se reemplaza. Las
+migraciones de esquema se aplican solas al arrancar la nueva versión, sobre la
+base ya respaldada. La versión desplegada queda en `.version-desplegada` y la
+anterior en `.version-anterior`. Para volver atrás, despliega ese commit.
+
+Requiere el alias `anhecans` en `~/.ssh/config` (configurable con `NAS_HOST`)
+y `rsync` en el NAS. Usa `--simular` la primera vez para revisar qué archivos
+se borrarían.
+
 ### Variables de rutas
 
 - `DB_DIR`: carpeta de `despensa.db`. En Docker, `/app/db`.

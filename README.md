@@ -7,13 +7,17 @@ App para registro de tickets de la Comer -- Análisis de Gastos de Super.
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-pip install -r requirements.txt
+pip install -r requirements-dev.txt   # dependencias de la app + pytest
 ADMIN_USUARIO=admin ADMIN_PASSWORD='una-contraseña-larga' python run.py
 ```
 
 La aplicación queda disponible en `http://localhost:8000`. La primera vez,
 `ADMIN_USUARIO` y `ADMIN_PASSWORD` crean el primer administrador (ver
 **Usuarios y roles**); después ya no hace falta definirlas.
+
+Pruebas: `python scripts/run_tests.py` (o `python -m pytest`). En producción
+basta con `requirements.txt`; `requirements-dev.txt` agrega las herramientas de
+desarrollo.
 
 En local, los datos se guardan por defecto en `backend/`:
 

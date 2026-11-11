@@ -102,6 +102,9 @@ remoto() {
     ssh -o BatchMode=yes "$NAS_HOST" "sh -s" <<EOF
 set -e
 PATH="\$PATH:$NAS_PATH_EXTRA"
+# El docker de Container Station guarda su configuración en una carpeta del
+# sistema donde el usuario no puede escribir; se usa una en su home.
+DOCKER_CONFIG="\${DOCKER_CONFIG:-\$HOME/.docker}"; export DOCKER_CONFIG; mkdir -p "\$DOCKER_CONFIG"
 NAS_DIR='$NAS_DIR'
 NAS_TMP='$NAS_TMP'
 if docker compose version >/dev/null 2>&1; then DC="docker compose"; else DC="docker-compose"; fi

@@ -21,13 +21,15 @@ def test_script_tiene_sintaxis_valida():
 def test_script_no_usa_comandos_que_borran_la_base():
     codigo = _codigo_sin_comentarios()
     for peligroso in ("down -v", "down --volumes", "volume rm", "volume prune",
-                      "system prune", "--pull", "--delete-excluded", "bd_volumen.py importar"):
+                      "system prune", "--pull", "--delete-excluded", "--reemplazar", "rm -rf data"):
         assert peligroso not in codigo, f"El despliegue no debe usar '{peligroso}'"
 
 
 def test_rsync_protege_datos_secretos_y_bases():
     codigo = SCRIPT.read_text()
-    for exclusion in ("/data/", "/.env", "*.db", "*.sqlite3", "/.git/"):
+    for exclusion in ("/data/", "/procesados/", "/.env", "*.db", "*.sqlite3", "*.pdf",
+                      "*.csv", "*.bak", "*.tar.gz", "/_backup_*/", "/.git/",
+                      "/backend/backups/", "/backend/procesados/", "/backend/resultados/"):
         assert f"--exclude={exclusion}" in codigo or f"--exclude='{exclusion}'" in codigo
 
 
@@ -36,6 +38,16 @@ def test_respalda_antes_de_actualizar_el_codigo():
     respaldo = codigo.index("bd_volumen.py respaldar")
     assert respaldo < codigo.index("rsync -a --delete $EXCL_REMOTO")
     assert respaldo < codigo.index("$DC build")
+
+
+def test_migracion_copia_la_base_antes_de_tocar_el_codigo():
+    codigo = _codigo_sin_comentarios()
+    copia = codigo.index("cp -p data/despensa.db data/backups/")
+    assert copia < codigo.index("rsync -a --delete $EXCL_REMOTO")
+    assert copia < codigo.index("bd_volumen.py importar")
+    # El original nunca se borra: solo se renombra tras confirmar que la app responde.
+    assert "rm data/despensa.db" not in codigo and "rm -f data/despensa.db" not in codigo
+    assert codigo.index("/health") < codigo.index("mv data/despensa.db data/despensa.db.migrada")
 
 
 def test_repositorio_no_versiona_bases_ni_secretos():

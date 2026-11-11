@@ -168,7 +168,15 @@ GitHub, sin tocar la base productiva:
 scripts/desplegar_nas.sh --simular            # muestra qué cambiaría, sin aplicar nada
 scripts/desplegar_nas.sh                      # despliega main
 scripts/desplegar_nas.sh rediseno-visual      # despliega otra rama o commit
+scripts/desplegar_nas.sh --migrar-bd          # solo una vez: pasa data/despensa.db al volumen
 ```
+
+**Primera vez en un NAS con la versión anterior** (base en `data/despensa.db`):
+el script se detiene y pide `--migrar-bd`. Con esa opción detiene la app,
+copia la base a `data/backups/` y a `data/despensa.db.antes-del-volumen`,
+actualiza el código, la importa al volumen `lacomer_db` con `bd_volumen.py`
+(sin borrar el original) y arranca. Cuando `/health` responde, renombra
+`data/despensa.db` a `despensa.db.migrada`.
 
 Pasos que sigue el script:
 
@@ -179,11 +187,14 @@ Pasos que sigue el script:
    `lacomer_db`.
 4. Respalda la base productiva en `data/backups/`. Si el respaldo falla, se
    detiene.
-5. Copia solo los archivos versionados en git (`git archive` + `rsync`), sin
-   tocar `data/`, `.env` ni ninguna base. Los archivos de código que ya no
+5. Guarda el código actual en `_backup_codigo/codigo_<fecha>.tar.gz` y la
+   imagen actual con la etiqueta `anterior`.
+6. Copia solo los archivos versionados en git (`git archive` + `rsync`), sin
+   tocar `data/`, `procesados/`, las carpetas de datos de `backend/`, `.env`,
+   bases, PDFs, CSV, Excel ni respaldos. Los archivos de código que ya no
    existen se borran.
-6. Ejecuta `docker compose build` y `up -d`. Nunca usa `down -v`.
-7. Espera a que `/health` responda.
+7. Ejecuta `docker compose build` y `up -d`. Nunca usa `down -v`.
+8. Espera a que `/health` responda.
 
 La base del Mac nunca viaja al NAS, y la del NAS nunca se reemplaza. Las
 migraciones de esquema se aplican solas al arrancar la nueva versión, sobre la
@@ -191,8 +202,9 @@ base ya respaldada. La versión desplegada queda en `.version-desplegada` y la
 anterior en `.version-anterior`. Para volver atrás, despliega ese commit.
 
 Requiere el alias `anhecans` en `~/.ssh/config` (configurable con `NAS_HOST`)
-y `rsync` en el NAS. Usa `--simular` la primera vez para revisar qué archivos
-se borrarían.
+y `rsync` en el NAS. Usa `--simular` para revisar qué archivos cambiarían o
+se borrarían; como el `rsync` de QNAP no admite `--dry-run`, el ensayo se hace
+sobre una copia temporal del código, nunca sobre la carpeta de la app.
 
 ### Variables de rutas
 

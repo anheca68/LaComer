@@ -5,12 +5,43 @@
 (function () {
     "use strict";
 
-    const PALETA = {
-        azul: "#3d6ea5",
-        gris: "#9aa8b7",
-        rojo: "#c0392b",
-        verde: "#27ae60",
-    };
+    // Radio de las esquinas de las barras: redondeadas, pero discretas.
+    const RADIO_BARRA = 4;
+
+    // Colores del tema activo (variables de base.css). Se leen al dibujar, así
+    // que al cambiar de tema basta con volver a dibujar.
+    const tema = (v) => (window.colorTema ? window.colorTema(v) : "");
+    function paleta() {
+        return {
+            principal: tema("--grafica-1"),   // esmeralda
+            secundario: tema("--grafica-2"),  // índigo
+            descuento: tema("--grafica-3"),   // ámbar
+            neutro: tema("--grafica-neutra"),
+            rejilla: tema("--grafica-rejilla"),
+            texto: tema("--grafica-texto"),
+        };
+    }
+    let PALETA = paleta();
+
+    // Apariencia común de todas las gráficas.
+    function estiloGeneral() {
+        if (!window.Chart) return;
+        const d = window.Chart.defaults;
+        d.font.family = getComputedStyle(document.body).fontFamily;
+        d.color = PALETA.texto;
+        d.borderColor = PALETA.rejilla;
+        d.plugins.tooltip.backgroundColor = "#0f172a";
+        d.plugins.tooltip.titleColor = "#f8fafc";
+        d.plugins.tooltip.bodyColor = "#e2e8f0";
+        d.plugins.tooltip.padding = 10;
+        d.plugins.tooltip.cornerRadius = 8;
+        d.plugins.tooltip.boxPadding = 4;
+        d.plugins.legend.labels.usePointStyle = true;
+        d.plugins.legend.labels.pointStyle = "rectRounded";
+    }
+
+    // Transparencia sobre un color hexadecimal (#rrggbb + aa).
+    const alfa = (hex, aa) => hex + aa;
 
     // Recorta etiquetas largas: sin esto una descripción de 40 caracteres se
     // come el ancho del gráfico y empuja las barras fuera del área visible.
@@ -22,17 +53,22 @@
 
     const ejeDinero = {
         beginAtZero: true,
+        border: { display: false },
+        grid: { color: () => PALETA.rejilla },
         ticks: {
-            font: { size: 10 },
+            font: { size: 11 },
             callback: (v) => "$ " + v.toLocaleString("es-MX"),
         },
     };
+
+    // Gráficas vivas, para destruirlas y redibujarlas al cambiar de tema.
+    const graficas = [];
 
     // Un canvas en blanco suele ser un canvas sin datos, no un canvas roto. Este
     // aviso en la tarjeta deja claro cuál de las dos cosas pasó.
     function avisar(id, texto) {
         const cv = document.getElementById(id);
-        if (!cv) return;
+        if (!cv || cv.parentNode.querySelector(".vacio")) return;
         const nota = document.createElement("p");
         nota.className = "vacio";
         nota.style.marginTop = "10px";
@@ -51,7 +87,7 @@
             return;
         }
         try {
-            new window.Chart(cv, config);
+            graficas.push(new window.Chart(cv, config));
         } catch (e) {
             console.error("panel: falló la gráfica", id, e);
             avisar(id, "No se pudo dibujar esta gráfica.");
@@ -81,25 +117,28 @@
                     {
                         label: "Bruto",
                         data: serie.map((m) => m.bruto),
-                        backgroundColor: PALETA.gris,
-                        borderRadius: 4,
+                        backgroundColor: PALETA.neutro,
+                        borderRadius: RADIO_BARRA,
+                        maxBarThickness: 36,
                         order: 3,
                     },
                     {
                         label: "Neto",
                         data: serie.map((m) => m.neto),
-                        backgroundColor: PALETA.azul,
-                        borderRadius: 4,
+                        backgroundColor: PALETA.principal,
+                        borderRadius: RADIO_BARRA,
+                        maxBarThickness: 36,
                         order: 2,
                     },
                     {
                         label: "Descuentos",
                         data: serie.map((m) => m.descuentos),
                         type: "line",
-                        borderColor: PALETA.rojo,
-                        backgroundColor: PALETA.rojo,
+                        borderColor: PALETA.descuento,
+                        backgroundColor: PALETA.descuento,
                         borderWidth: 2,
-                        pointRadius: 4,
+                        pointRadius: 3,
+                        tension: 0.3,
                         // Sin descuentos la línea queda pegada al eje y se lee
                         // como un error de dibujo.
                         hidden: !serie.some((m) => m.descuentos > 0),
@@ -113,8 +152,9 @@
                 interaction: { mode: "index", intersect: false },
                 plugins: {
                     legend: {
-                        position: "bottom",
-                        labels: { boxWidth: 12, font: { size: 11 } },
+                        position: "top",
+                        align: "end",
+                        labels: { boxWidth: 8, boxHeight: 8, font: { size: 12 } },
                     },
                     tooltip: {
                         callbacks: {
@@ -123,7 +163,7 @@
                     },
                 },
                 scales: {
-                    x: { grid: { display: false } },
+                    x: { grid: { display: false }, border: { display: false } },
                     y: ejeDinero,
                 },
             },
@@ -148,9 +188,10 @@
                         // barra más larga sea también la más oscura.
                         backgroundColor: (ctx) =>
                             ctx.dataIndex === orden.length - 1
-                                ? PALETA.azul
-                                : PALETA.azul + "99",
-                        borderRadius: 4,
+                                ? PALETA.principal
+                                : alfa(PALETA.principal, "99"),
+                        borderRadius: RADIO_BARRA,
+                        maxBarThickness: 18,
                     },
                 ],
             },
@@ -176,7 +217,8 @@
                     x: ejeDinero,
                     y: {
                         grid: { display: false },
-                        ticks: { font: { size: 10 }, autoSkip: false },
+                        border: { display: false },
+                        ticks: { font: { size: 11 }, autoSkip: false },
                     },
                 },
             },
@@ -194,8 +236,9 @@
                     {
                         label: "Gasto",
                         data: orden.map((s) => s.importe),
-                        backgroundColor: PALETA.verde + "cc",
-                        borderRadius: 4,
+                        backgroundColor: alfa(PALETA.secundario, "cc"),
+                        borderRadius: RADIO_BARRA,
+                        maxBarThickness: 22,
                     },
                 ],
             },
@@ -223,7 +266,7 @@
                 },
                 scales: {
                     x: ejeDinero,
-                    y: { grid: { display: false }, ticks: { font: { size: 10 } } },
+                    y: { grid: { display: false }, border: { display: false }, ticks: { font: { size: 11 } } },
                 },
             },
         });
@@ -241,9 +284,10 @@
                         label: "Gasto",
                         data: dias.map((d) => d.importe),
                         backgroundColor: dias.map((d) =>
-                            d.importe === mayor ? PALETA.azul : PALETA.azul + "88"
+                            d.importe === mayor ? PALETA.principal : alfa(PALETA.principal, "77")
                         ),
-                        borderRadius: 4,
+                        borderRadius: RADIO_BARRA,
+                        maxBarThickness: 40,
                     },
                 ],
             },
@@ -265,7 +309,7 @@
                     },
                 },
                 scales: {
-                    x: { grid: { display: false } },
+                    x: { grid: { display: false }, border: { display: false } },
                     y: ejeDinero,
                 },
             },
@@ -273,6 +317,8 @@
     }
 
     function dibujar(d) {
+        PALETA = paleta();
+        estiloGeneral();
         const jobs = [
             ["g-mes", d.meses, graficaPeriodo],
             ["g-categoria", d.categorias, graficaCategoria],
@@ -296,7 +342,14 @@
             if (!r.ok) throw new Error("HTTP " + r.status);
             return r.json();
         })
-        .then(dibujar)
+        .then((d) => {
+            dibujar(d);
+            // Al cambiar de tema se redibuja con los mismos datos.
+            document.addEventListener("tema-cambiado", () => {
+                graficas.splice(0).forEach((g) => g.destroy());
+                dibujar(d);
+            });
+        })
         .catch((e) => {
             console.error("panel: no se pudieron cargar los datos", e);
             ["g-mes", "g-categoria", "g-subcategoria", "g-dia"].forEach((id) =>

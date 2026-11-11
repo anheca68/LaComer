@@ -19,8 +19,15 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copiar la aplicación. .dockerignore excluye datos, PDFs, bases y secretos.
 COPY . .
 
-# El volumen de datos se monta en /app/data en producción.
-RUN mkdir -p /app/data
+# Datos persistentes fuera del código, en dos volúmenes:
+#   /app/db   -> base SQLite (despensa.db), en su propio volumen
+#   /app/data -> PDFs, CSV, staging y respaldos
+# Se declaran como VOLUME para que, aunque se arranque la imagen sin compose,
+# Docker no guarde la base dentro de la capa del contenedor.
+ENV DB_DIR=/app/db \
+    DATA_DIR=/app/data
+RUN mkdir -p /app/db /app/data
+VOLUME ["/app/db", "/app/data"]
 
 EXPOSE 8001
 

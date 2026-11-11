@@ -8,11 +8,18 @@ services:
     ports:
       - "8001:8001"
     environment:
+      # La base SQLite vive en su propio volumen, separada de los archivos.
+      DB_DIR: /app/db
       DATA_DIR: /app/data
       ADMIN_USUARIO: ${ADMIN_USUARIO:-admin}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Define ADMIN_PASSWORD en .env}
       COOKIE_SEGURA: ${COOKIE_SEGURA:-0}
     volumes:
+      # Base de datos: volumen nombrado que gestiona Docker. Sobrevive a
+      # `docker compose down` y a reconstruir la imagen; solo se borra con
+      # `docker compose down -v` o `docker volume rm`.
+      - lacomer_db:/app/db
+      # Archivos de tickets y respaldos: carpeta visible en el NAS.
       - ./data:/app/data
     stop_grace_period: 30s
     healthcheck:
@@ -25,3 +32,8 @@ services:
       timeout: 5s
       retries: 3
       start_period: 20s
+
+volumes:
+  lacomer_db:
+    # Nombre fijo: no depende de la carpeta desde la que se ejecute compose.
+    name: lacomer_db

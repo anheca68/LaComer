@@ -1,9 +1,14 @@
 """Rutas de la aplicación.
 
-El código vive en el repositorio; los datos persistentes viven en ``DATA_DIR``.
-En desarrollo, ``DATA_DIR`` apunta a ``backend/`` para conservar el
-comportamiento actual. En Docker se define ``DATA_DIR=/app/data`` y se monta
-un volumen en esa ruta, de modo que reconstruir la imagen no toque los datos.
+El código vive en el repositorio y los datos persistentes fuera de él:
+
+* ``DB_DIR``: carpeta de la base SQLite (``despensa.db``).
+* ``DATA_DIR``: archivos de tickets (PDFs, CSV, staging) y respaldos.
+
+En desarrollo ninguna está definida y todo vive en ``backend/``. En Docker la
+base va en su propio volumen (``DB_DIR=/app/db``) y los archivos en otro
+(``DATA_DIR=/app/data``), de modo que reconstruir la imagen no toque los datos
+y la base quede separada de los archivos.
 """
 
 import os
@@ -38,10 +43,12 @@ for directorio in (
 ):
     directorio.mkdir(parents=True, exist_ok=True)
 
-# Catálogo normalizado en SQLite. CATALOGO_DB_DIR se conserva por compatibilidad;
-# por defecto la base vive dentro de DATA_DIR.
+# Base SQLite. DB_DIR la separa de los archivos; CATALOGO_DB_DIR es el nombre
+# anterior y se conserva por compatibilidad. Sin ninguna, va dentro de DATA_DIR.
 CATALOGO_DB_DIR = Path(
-    os.environ.get("CATALOGO_DB_DIR", str(DATA_DIR))
+    os.environ.get("DB_DIR")
+    or os.environ.get("CATALOGO_DB_DIR")
+    or str(DATA_DIR)
 ).expanduser()
 CATALOGO_DB_PATH = CATALOGO_DB_DIR / "despensa.db"
 CATALOGO_DB_DIR.mkdir(parents=True, exist_ok=True)

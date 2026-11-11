@@ -76,56 +76,40 @@ migración 8, que reconstruye la tabla `tickets` para permitir el origen
 
 ## Despliegue con Docker
 
-1. Crear el archivo de entorno:
+La aplicación usa dos volúmenes, separados del código:
+
+| Volumen | Ruta en el contenedor | Contenido |
+|---------|-----------------------|-----------|
+| `lacomer_db` (volumen nombrado de Docker) | `/app/db` | La base SQLite `despensa.db` |
+| `./data` (carpeta del NAS) | `/app/data` | PDFs, CSV, staging y respaldos |
+
+La base vive en su propio volumen: reconstruir la imagen, `docker compose down`
+o borrar el contenedor no la tocan. Solo se borra con `docker compose down -v` o
+`docker volume rm lacomer_db`; **no uses esos comandos** sin un respaldo.
+
+### Instalación nueva
+
+1. Crear el archivo de entorno y definir una contraseña segura:
 
    ```bash
    cp .env.example .env
    ```
 
-   Editar `.env` y definir una contraseña segura:
+   `ADMIN_USUARIO` y `ADMIN_PASSWORD` crean el primer administrador la primera
+   vez que arranca la aplicación.
 
-   ```text
-   ADMIN_USUARIO=admin
-   ADMIN_PASSWORD=una-contraseña-larga
-   ```
-
-   Estos datos crean el primer administrador la primera vez que arranca la
-   aplicación.
-
-2. Crear la carpeta de datos persistentes:
+2. Crear la carpeta de archivos, construir y arrancar:
 
    ```bash
    mkdir -p data
-   ```
-
-3. Copiar la base y los datos existentes a `data/`:
-
-   ```text
-   data/
-     despensa.db
-     uploads/
-     procesados/
-     resultados/
-     staging/
-     descartados/
-     backups/
-   ```
-
-4. Construir y arrancar:
-
-   ```bash
    docker compose build
    docker compose up -d
    ```
 
-   En instalaciones con Docker Compose v1:
+   En instalaciones con Docker Compose v1 usa `docker-compose` en lugar de
+   `docker compose`.
 
-   ```bash
-   docker-compose build
-   docker-compose up -d
-   ```
-
-5. Verificar:
+3. Verificar:
 
    ```bash
    curl http://localhost:8001/health
@@ -134,22 +118,53 @@ migración 8, que reconstruye la tabla `tickets` para permitir el origen
 
 La aplicación queda disponible en `http://IP_DEL_NAS:8001`.
 
-### Separación entre código y datos
+### Actualizar una instalación que tenía la base en `data/`
 
-El contenedor guarda el código en `/app` y monta `./data` en `/app/data`.
-Esto permite reconstruir la imagen sin perder la base ni los archivos de
-tickets.
+Hasta ahora la base estaba en `data/despensa.db`. Hay que pasarla al volumen
+`lacomer_db` **una sola vez**, con la aplicación detenida:
 
-La ruta de datos se controla con `DATA_DIR`:
+```bash
+cd /share/Container/LaComer
+docker compose down                        # detiene la versión anterior
+cp data/despensa.db data/despensa.db.antes-del-volumen   # respaldo extra
+# ...actualizar el código (git pull o copiar los archivos nuevos)...
+docker compose build
+docker compose run --rm app python scripts/bd_volumen.py importar /app/data/despensa.db
+docker compose up -d
+```
 
-- Sin variable: se usa `backend/` (desarrollo local).
-- En Docker: `DATA_DIR=/app/data`.
+`docker compose run` crea el volumen la primera vez. Si la aplicación nueva ya
+se arrancó antes de importar, no pasa nada: la base vacía que creó se reemplaza
+sin pedir confirmación.
 
-### Backups
+El script verifica la integridad de la base, la copia al volumen y muestra
+cuántos tickets, productos y usuarios quedaron. No sobrescribe una base que ya
+tenga datos salvo con `--reemplazar`, y en ese caso la respalda antes.
+Con la app en marcha, detenla antes (`docker compose stop app`).
 
-Los respaldos que genera el panel de administración se guardan en
-`data/backups/`. Conviene respaldar esa carpeta y `data/despensa.db` antes de
-cada actualización.
+Cuando compruebes en la aplicación que están tus tickets, renombra
+`data/despensa.db` (por ejemplo a `despensa.db.migrada`) para que no se
+confunda con la base en uso.
+
+### Respaldos
+
+La base ya no está en una carpeta visible del NAS, así que los respaldos van a
+`data/backups/`:
+
+```bash
+docker compose exec app python scripts/bd_volumen.py respaldar
+```
+
+Los respaldos que genera **Normalizar productos** también quedan ahí, y ambos
+se pueden restaurar desde esa pantalla. Conviene respaldar antes de cada
+actualización y copiar `data/backups/` fuera del NAS de vez en cuando.
+
+### Variables de rutas
+
+- `DB_DIR`: carpeta de `despensa.db`. En Docker, `/app/db`.
+- `DATA_DIR`: carpeta de archivos y respaldos. En Docker, `/app/data`.
+- Sin ninguna de las dos (desarrollo local), todo se guarda en `backend/`.
+  `CATALOGO_DB_DIR` sigue funcionando como nombre anterior de `DB_DIR`.
 
 ### Nota para QNAP
 

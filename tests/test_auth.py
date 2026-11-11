@@ -184,8 +184,6 @@ RUTAS_ADMIN = [
     ("post", "/admin/usuarios"),
     ("get", "/admin/normalizar-productos"),
     ("post", "/admin/normalizar-productos/deshacer"),
-    ("get", "/importar"),
-    ("post", "/importar/aplicar"),
     ("get", "/admin/tickets/1"),
     ("post", "/admin/tickets/1/anular"),
 ]

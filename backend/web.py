@@ -16,24 +16,8 @@ from backend.config import CATALOGO_DB_PATH, TEMPLATES_DIR, STATIC_DIR
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
 
-def carga_inicial_abierta() -> bool:
-    """Solo se puede usar /importar mientras la tabla `tickets` esté vacía.
-
-    Consultarlo por render es barato: son decenas de filas, y evita que la barra
-    lateral ofrezca una opción que ya no hace nada.
-    """
-    from backend.database import get_db_connection
-
-    conn = get_db_connection()
-    try:
-        return conn.execute("SELECT COUNT(*) FROM tickets").fetchone()[0] == 0
-    finally:
-        conn.close()
-
-
 # Variables disponibles en cualquier plantilla sin pasarlas por el contexto.
 templates.env.globals["db_path"] = str(CATALOGO_DB_PATH)
-templates.env.globals["carga_inicial_abierta"] = carga_inicial_abierta
 
 
 def render(

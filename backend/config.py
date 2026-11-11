@@ -38,13 +38,6 @@ for directorio in (
 ):
     directorio.mkdir(parents=True, exist_ok=True)
 
-# Ruta opcional del Excel usado en la carga inicial. Ya no es parte del flujo
-# normal; si se necesita, se puede montar en DATA_DIR o definir CATALOGO_EXCEL.
-CATALOGO_EXCEL_PATH = os.environ.get(
-    "CATALOGO_EXCEL",
-    str(DATA_DIR / "DESPENSA.xlsx"),
-)
-
 # Catálogo normalizado en SQLite. CATALOGO_DB_DIR se conserva por compatibilidad;
 # por defecto la base vive dentro de DATA_DIR.
 CATALOGO_DB_DIR = Path(

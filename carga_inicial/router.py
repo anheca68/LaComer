@@ -14,10 +14,11 @@ from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import RedirectResponse
 
 from backend.auth import solo_admin
-from backend.config import CATALOGO_EXCEL_PATH, PROCESADOS_DIR, STAGING_DIR
+from backend.config import PROCESADOS_DIR, STAGING_DIR
 from backend.web import render
 from backend.database import get_db_connection
-from backend.services.importar_historico import (
+from carga_inicial.servicio import (
+    CATALOGO_EXCEL_PATH,
     ErrorImportacion,
     # Aliados: el router expone rutas con estos mismos nombres, y una función
     # definida después se quedaría con el nombre del endpoint y se llamaría a

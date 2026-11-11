@@ -34,7 +34,7 @@ persona tiene su usuario y contraseña, y puede tener uno o varios roles:
 
 | Rol | Puede |
 |-----|-------|
-| `admin` | Lo mismo que `capturista` y `consulta`, más gestionar usuarios (**Administración → Usuarios**), corregir o anular tickets registrados, normalizar productos y la carga inicial |
+| `admin` | Lo mismo que `capturista` y `consulta`, más gestionar usuarios (**Administración → Usuarios**), corregir o anular tickets registrados y normalizar productos |
 | `capturista` | Subir tickets PDF, capturar tickets a mano y, en **Registros**, ver y clasificar el catálogo y el registro de cambios |
 | `consulta` | Ver panel, reportes y consultas |
 
@@ -157,5 +157,9 @@ Apache.
 La base de datos y los archivos de tickets no deben ser accesibles por HTTP.
 Expón únicamente el puerto `8001` del contenedor.
 
-El archivo `DESPENSA.xlsx` ya no es necesario para el flujo normal. Solo se
-usaría para una carga inicial histórica.
+## Carga inicial del histórico
+
+La importación del histórico (Excel `DESPENSA.xlsx` y PDFs antiguos) ya no es
+parte de la aplicación: vive aparte en `carga_inicial/` y no entra en la imagen
+de Docker. Si se vuelve a necesitar, se levanta por separado con
+`python -m carga_inicial`; ver `carga_inicial/README.md`.

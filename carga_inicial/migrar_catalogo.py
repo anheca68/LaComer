@@ -1,6 +1,6 @@
 """Migra el catálogo del Excel a la base de datos normalizada.
 
-Uso:  ./venv/bin/python scripts/migrar_excel.py [ruta_excel]
+Uso:  .venv/bin/python -m carga_inicial.migrar_catalogo [ruta_excel]
 
 Es idempotente: se puede correr las veces que quieras sin duplicar nada.
 """
@@ -12,9 +12,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import pandas as pd
 
-from backend.config import CATALOGO_DB_PATH, CATALOGO_EXCEL_PATH
+from backend.config import CATALOGO_DB_PATH
 from backend.database import get_db_connection, init_db
 from backend.services.catalogo import normalizar
+from carga_inicial.servicio import CATALOGO_EXCEL_PATH
 
 
 def _indice_nombres(conn, tabla: str, columna_id: str = "id") -> dict:

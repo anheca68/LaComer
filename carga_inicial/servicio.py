@@ -13,6 +13,7 @@ y lo que no saber de cada uno, para que la persona decida antes de escribir.
 
 import hashlib
 import json
+import os
 import sqlite3
 from collections import Counter
 from pathlib import Path
@@ -20,13 +21,17 @@ from typing import Any, Dict, List, Optional
 
 import pandas as pd
 
-from backend.config import CATALOGO_EXCEL_PATH, PROCESADOS_DIR
+from backend.config import DATA_DIR, PROCESADOS_DIR
 from backend.services.catalogo import (
     normalizar,
     resolver_categoria,
     resolver_subcategoria,
 )
 from backend.services.pdf_parser import parsear_ticket_pdf
+
+# El Excel ya no es parte del flujo normal: solo lo usa esta herramienta. Se
+# busca en DATA_DIR o en la ruta que indique CATALOGO_EXCEL.
+CATALOGO_EXCEL_PATH = os.environ.get("CATALOGO_EXCEL", str(DATA_DIR / "DESPENSA.xlsx"))
 
 HOJA_DATOS = "DATA"
 COLUMNAS_REQUERIDAS = [

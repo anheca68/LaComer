@@ -112,14 +112,6 @@
                     <span class="icono">&#9881;</span><span class="texto">Normalizar productos</span>
                 </a>
                 {% endif %}
-
-                {% if usuario.es_admin and carga_inicial_abierta() %}
-                <div class="grupo">Mantenimiento</div>
-                <a href="/importar" class="{% if seccion == 'importar' %}activo{% endif %}"
-                   data-tooltip="Carga inicial" aria-label="Carga inicial">
-                    <span class="icono">&#8679;</span><span class="texto">Carga inicial</span>
-                </a>
-                {% endif %}
             </nav>
 
             <div class="pie">
